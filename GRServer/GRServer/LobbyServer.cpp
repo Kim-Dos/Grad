@@ -9,16 +9,18 @@
 #include <memory>
 #include <atomic>
 
-constexpr unsigned int SERVERPORT = 4000;
-const int MAXSIZE = 1024;
+#include "Protocol.h"
+
 int NumOfClient = 0;
+
 
 using boost::asio::ip::tcp;
 using boost::unordered::concurrent_flat_map;
 //using boost::asio::awaitable;
 
+class session;
 
-std::map<int, std::shared_ptr<session>> clients;
+concurrent_flat_map<int, std::shared_ptr<session>> clients;
 
 // ---------------------
 // Lobby Server
@@ -86,7 +88,7 @@ private:
 				exit(-1);
 			}
 			++NumOfClient;
-			clients.emplace(std::make_shared<session>(std::move(mServerSocket), NumOfClient));
+			//clients.emplace(std::make_shared<session>(std::move(mServerSocket), NumOfClient));
 			ServerAccept();
 		});
 	}
