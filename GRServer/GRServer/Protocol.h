@@ -21,6 +21,12 @@ enum charactertype {
 	Assister
 };
 
+enum stagetype {
+	first,
+	second,
+	third
+};
+
 
 
 
@@ -33,7 +39,7 @@ struct FXYZ {
 #pragma pack(push, 1)
 
 // Lobby
-struct CSplayer 
+struct CSplayerInfo 
 {
 	char type;
 	char name[20];
@@ -42,6 +48,8 @@ struct CSplayer
 //bind max 4 socket
 struct LobbyToGame 
 {
+	char stage;
+	session member1, member2, member3, member4;
 };
 
 
@@ -69,3 +77,6 @@ struct SCmonster {
 	char act;
 	//send changing model data
 };
+
+
+#pragma pack(pop)
