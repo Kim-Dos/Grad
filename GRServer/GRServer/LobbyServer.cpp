@@ -1,7 +1,10 @@
 
 #include <boost/asio.hpp>
 #include <boost\unordered\concurrent_flat_map.hpp>
+#include <boost\unordered_map.hpp>
 #include <iostream>
+
+
 #include <vector>
 #include <map>
 #include <thread>
@@ -11,21 +14,30 @@
 
 #include "Protocol.h"
 
-int NumOfClient = 0;
+std::atomic_int NumOfClient = 0;
 
 
 using boost::asio::ip::tcp;
-using boost::unordered::concurrent_flat_map;
+using boost::concurrent_flat_map;
 //using boost::asio::awaitable;
 
 class session;
 
 concurrent_flat_map<int, std::shared_ptr<session>> clients;
 
+
+
+
 // ---------------------
 // Lobby Server
 // ---------------------
 
+
+
+int GetClientID()
+{
+	return NumOfClient++;
+}
 
 // 게임 서버 세션일때
 //How? , Session - 작업최소단위 , Coroutine 사용, shared_ptr 형태, atomic계산?
@@ -39,10 +51,10 @@ class session
 	: public std::enable_shared_from_this<session>
 {
 private:
-	tcp::socket plSock;
-	int prevDataSize,curDataSize;
-	int userID;
-	UCHAR recvBuffer[MAXSIZE];
+	tcp::socket plSock; //각 플레이어와 연결된 소켓
+	int prevDataSize,curDataSize; //읽어오는 패킷의 조립
+	int userID; //플레이어 아이디
+	UCHAR recvBuffer[MAXSIZE]; // 
 
 	void recv() {
 		auto self(shared_from_this());
@@ -50,26 +62,24 @@ private:
 			[this, self](boost::system::error_code ec, std::size_t length)
 			{
 				if (ec) {
-					std::cout << "READ ER" << std::endl;
+					std::cout << "READ ERR" << std::endl;
 					exit(-1);
 				}
 				int BufferLoad = static_cast<int>(length);
 				if (curDataSize == 0) {
 
 				}
+				recv();
 			});
-
-	
 	}
 	
-
 public:
 	session(tcp::socket sock, int numofclient) noexcept
 		: plSock(std::move(sock)), userID(numofclient)  {
 		prevDataSize = 0; curDataSize = 0;
 	}
 	void Start() {
-
+		std::cout << "Start" << std::endl;
 	}
 };
 
@@ -87,8 +97,12 @@ private:
 				std::cout << " AcceptError" << std::endl;
 				exit(-1);
 			}
-			++NumOfClient;
-			//clients.emplace(std::make_shared<session>(std::move(mServerSocket), NumOfClient));
+			int newsession = GetClientID();
+			clients.emplace(newsession, std::make_shared<session>(std::move(mServerSocket), newsession));
+			clients.visit(newsession, [](auto& x) {
+				x.second->Start();
+			});
+
 			ServerAccept();
 		});
 	}
@@ -101,6 +115,11 @@ public:
 	}
 };
 
+
+
+
+
+
 void worker_thread(boost::asio::io_context* service)
 {
 	service->run();
@@ -110,7 +129,7 @@ int main()
 {
 	boost::asio::io_context IOContext;
 
-	//Server s(IOContext, SERVERPORT);
+	Server s(IOContext, SERVERPORT);
 
 	std::vector<std::jthread> WorkerThreads;
 

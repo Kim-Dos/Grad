@@ -1,6 +1,10 @@
 /GRserver/GRserver/x64
 /GRserver/.vs
 /GRserver/packages 
+/GRClient/GRClient/x64
+/GRClient/.vs
+/GRClient/packages
+
 *.exe 
 *.ilk 
 *.pdb 

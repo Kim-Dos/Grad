@@ -3,8 +3,9 @@
 
 constexpr unsigned int SERVERPORT = 4000;
 const int MAXSIZE = 1024;
+const int MAXUSER = 500;
 
-class session;
+//class session;
 
 
 //how to receive data? get a type? or size?
@@ -49,7 +50,7 @@ struct CSplayerInfo
 struct LobbyToGame 
 {
 	char stage;
-	session member1, member2, member3, member4;
+	
 };
 
 
