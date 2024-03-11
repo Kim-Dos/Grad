@@ -1,12 +1,9 @@
 
 #include <boost/asio.hpp>
 #include <boost\unordered\concurrent_flat_map.hpp>
-#include <boost\unordered_map.hpp>
 #include <iostream>
 
-
 #include <vector>
-#include <map>
 #include <thread>
 //#include <boost/timer.hpp>
 #include <memory>
@@ -39,21 +36,13 @@ int GetClientID()
 	return NumOfClient++;
 }
 
-// 게임 서버 세션일때
-//How? , Session - 작업최소단위 , Coroutine 사용, shared_ptr 형태, atomic계산?
-// 버퍼처리를 여기서? 작업 크기는 어느정도? Coroutine을 사용한다면 어느정도 크기가 있어야 하나?
-// 각 session은 플레이어캐릭터 단위로한다면? -> 각 플레이어 마다 가지는 상위클래스 필요 -> 방 하나를 상속받아서 보내주는 느낌
-// 각 행동을 지연가능객체로 지정하자 
-// awaitable<> 객체로 행동 패턴을 설정 -> 비동기 형태로 작성해야함-> queue? 
-// -----------------------------------------------------------------------
-// 로비서버의 세션은 플레이어 단위로 지정하자
 class session 
 	: public std::enable_shared_from_this<session>
 {
 private:
-	tcp::socket plSock; //각 플레이어와 연결된 소켓
-	int prevDataSize,curDataSize; //읽어오는 패킷의 조립
-	int userID; //플레이어 아이디
+	tcp::socket plSock;
+	int prevDataSize,curDataSize; 
+	int userID;
 	UCHAR recvBuffer[MAXSIZE]; // 
 
 	void recv() {
@@ -69,6 +58,9 @@ private:
 				if (curDataSize == 0) {
 
 				}
+
+
+
 				recv();
 			});
 	}
@@ -79,13 +71,18 @@ public:
 		prevDataSize = 0; curDataSize = 0;
 	}
 	void Start() {
+
+		recv();
+
 		std::cout << "Start" << std::endl;
+
+
 	}
 };
 
 
 
-//서버 연결 및 통신 시작지점
+
 class Server {
 private:
 	tcp::socket mServerSocket;

@@ -132,14 +132,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DataServer.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="LobbyServer.cpp" />
+    <ClCompile Include="MathHelper.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="MathHelper.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="Protocol.h" />
+    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
