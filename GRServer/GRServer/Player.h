@@ -8,14 +8,15 @@ class Player : public GameObject
 {
 public:
 	Player();
-	Player(int CharType);
+	Player(int chartype);
 
-	Player(int CharType, FXYZ pos, FXYZ vel, FXYZ Acc, FXYZ dir);
+	Player(int chartype, FXYZ pos, FXYZ vel, FXYZ acc, FXYZ dir);
 
 	~Player();
 
 	bool mNormalCoolTime();
 	bool mHyperCoolTime();
+
 
 private:
 	bool mNormalSkill = true;
@@ -23,4 +24,8 @@ private:
 
 	bool mHyperSkill = true;
 	int mHyperSkillTimer;
+
+	int mCharaterType;
+
+	
 };

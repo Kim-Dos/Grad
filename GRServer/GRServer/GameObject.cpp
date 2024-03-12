@@ -52,3 +52,8 @@ void GameObject::SetModel(const std::string& model)
 {
 	mName = model;
 }
+
+void GameObject::SetDefault()
+{
+
+}

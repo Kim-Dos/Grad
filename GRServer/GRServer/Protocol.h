@@ -11,9 +11,9 @@ const int MAXUSER = 500;
 //how to receive data? get a type? or size?
 
 enum actiontype {
-	MainSkill,
+	NormalSkill,
 	UltimitSkill,
-	GeneralAttack
+	Attack
 };
 
 enum charactertype {

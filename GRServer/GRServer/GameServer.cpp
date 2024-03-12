@@ -85,6 +85,8 @@ public:
 		: plSock(std::move(sock)), userID(numofclient) {
 		prevDataSize = 0; curDataSize = 0;
 	}
+	~session() {}
+
 	void Start() {
 
 		recv();

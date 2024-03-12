@@ -47,10 +47,9 @@ public:
 	void SetVelocity(float x, float y, float z);
 	void SetVelocity(FXYZ velocity);
 	void SetDirection( float x, float y, float z );
-
-
 	void SetDirection(FXYZ dir);
 
+	virtual void SetDefault();
 
 	void SetModel(const std::string& model);
 
