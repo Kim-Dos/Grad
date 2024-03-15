@@ -69,5 +69,8 @@
     <ClInclude Include="UDPDevice.h">
       <Filter>Network</Filter>
     </ClInclude>
+    <ClInclude Include="GameServer.h">
+      <Filter>Network\InGame</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

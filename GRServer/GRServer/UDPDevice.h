@@ -8,9 +8,8 @@ using boost::asio::ip::udp;
 
 
 class UDPDevice {
-private:
+protected:
 	udp::socket mUDPSocket;
-
 
 public:
 	UDPDevice(boost::asio::io_context& IOContext, int ServerPort)
