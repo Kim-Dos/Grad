@@ -31,9 +31,6 @@
     <ClCompile Include="Player.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="TCPDevice.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
     <ClCompile Include="DataServer.cpp">
       <Filter>Database</Filter>
     </ClCompile>
@@ -68,6 +65,9 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>remain</Filter>
+    </ClInclude>
+    <ClInclude Include="UDPDevice.h">
+      <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

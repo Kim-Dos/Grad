@@ -18,7 +18,7 @@ private:
 				std::cout << " AcceptError" << std::endl;
 				exit(-1);
 			}
-			ServerAccept();
+			StartSession();
 			});
 	}
 public:
@@ -28,4 +28,6 @@ public:
 	{
 		ServerAccept();
 	}
+
+	virtual void StartSession(){}
 };
