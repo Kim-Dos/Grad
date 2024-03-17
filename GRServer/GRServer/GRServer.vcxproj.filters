@@ -72,5 +72,8 @@
     <ClInclude Include="GameServer.h">
       <Filter>Network\InGame</Filter>
     </ClInclude>
+    <ClInclude Include="LobbyServer.h">
+      <Filter>Network\Lobby</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

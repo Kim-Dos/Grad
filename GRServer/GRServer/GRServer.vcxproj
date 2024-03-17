@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameServer.h" />
+    <ClInclude Include="LobbyServer.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Protocol.h" />

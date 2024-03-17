@@ -6,6 +6,7 @@
 using boost::asio::ip::tcp;
 
 
+class session;
 
 
 class TCPDevice {
@@ -13,15 +14,9 @@ protected:
 	tcp::socket mTCPSocket;
 	tcp::acceptor mTCPAcceptor;
 
-	void ServerAccept() {
-		mTCPAcceptor.async_accept(mTCPSocket, [this](boost::system::error_code ec) {
-			if (ec) {
-				std::cout << " AcceptError" << std::endl;
-				exit(-1);
-			}
-			ServerAccept();
-			});
-	}
+	std::atomic_int mNumofClients = 0;
+
+	virtual void ServerAccept();
 
 
 public:
@@ -33,5 +28,8 @@ public:
 		ServerAccept();
 	}
 
-	virtual void StartSession(){}
+	virtual void StartSession();
+
+	int GetNumOfClient() { return mNumofClients; }
+
 };
