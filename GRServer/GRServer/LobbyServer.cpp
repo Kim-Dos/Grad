@@ -23,27 +23,27 @@ void LobbySession::recv() {
 				std::cout << "READ ERR" << std::endl;
 				exit(-1);
 			}
+			while()
 			int BufferLoad = static_cast<int>(length);
 			if (curDataSize == 0) {
 				curDataSize = recvBuffer[0];
 				if (curDataSize > 200) { std::cout << "BufferErr\n" << std::endl; exit(-1); } //find a error packet
 			}
-
 			int build = curDataSize - prevDataSize;
 			if (build <= BufferLoad) {
-				// 패킷 조립s
-				memcpy(recvBuffer + prevDataSize, buf, build);
-				Process_Packet(recvBuffer, userID);
+				// 패킷 조립
+				memcpy(PacketData + prevDataSize, recvBuffer, build);
+				LobbyPacketProcess();
 				curDataSize = 0;
 				prevDataSize = 0;
 				BufferLoad -= build;
-				buf += build;
+				recvBuffer += build;
 			}
 			else {
 				// 훗날을 기약
-				memcpy(packet_ + prev_data_size_, buf, data_to_process);
-				prev_data_size_ += data_to_process;
-				data_to_process = 0;
+				memcpy(PacketData + prevDataSize, recvBuffer, build);
+				prevDataSize += build;
+				build = 0;
 				buf += data_to_process;
 			}
 

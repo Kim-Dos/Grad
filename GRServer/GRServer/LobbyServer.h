@@ -26,11 +26,12 @@ private:
 	tcp::socket plSock;
 	int prevDataSize, curDataSize;
 	int userID;
-	UCHAR recvBuffer[MAXSIZE]; // 
-	UCHAR remainData[MAXSIZE];
+	unsigned char recvBuffer[MAXSIZE]; // 
+	unsigned char PacketData[MAXSIZE];
 
 	void recv();
 
+	void LobbyPacketProcess();
 
 public:
 	LobbySession(tcp::socket sock, int numofclient) noexcept
