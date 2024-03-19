@@ -14,7 +14,7 @@ protected:
 	tcp::socket mTCPSocket;
 	tcp::acceptor mTCPAcceptor;
 
-	std::atomic_int mNumofClients = 0;
+	//std::atomic_int mNumofClients = 0;
 
 	virtual void ServerAccept();
 
@@ -30,6 +30,6 @@ public:
 
 	virtual void StartSession();
 
-	int GetNumOfClient() { return mNumofClients; }
+	//int GetNumOfClient() { return mNumofClients; }
 
 };

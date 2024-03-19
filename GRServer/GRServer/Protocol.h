@@ -42,7 +42,8 @@ struct FXYZ {
 // Lobby
 struct CSplayerInfo 
 {
-	char type;
+	BYTE size;
+	BYTE type;
 	char name[20];
 };
 
@@ -59,23 +60,29 @@ struct LobbyToGame
 
 // charcater move
 struct CSmove {
-	char type;
-	int keydown;
+	BYTE size;
+	BYTE type;
+	FXYZ position;
 
 };
 
 
 struct CSattack {
-	char type;
+	BYTE size;
+	BYTE type;
 	char act_type;
 };
 
 
 
 struct SCmonster {
-	char type;
+	BYTE size;
+	BYTE type;
 	FXYZ pos;
 	char act;
+
+
+
 	//send changing model data
 };
 
