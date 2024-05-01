@@ -10,10 +10,11 @@ using namespace std;
 class GameObject
 {
 public:
-	GameObject();
-	~GameObject();
+	
+	GameObject() {}
 
-	virtual ~GameObject();
+	~GameObject() {}
+
 
 	//-----------------------------------------------------------
 	// Getter
@@ -49,7 +50,7 @@ public:
 	void SetDirection( float x, float y, float z );
 	void SetDirection(FXYZ dir);
 
-	virtual void SetDefault();
+	void SetDefault();
 
 	void SetModel(const std::string& model);
 
