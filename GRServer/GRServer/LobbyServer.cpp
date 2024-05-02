@@ -22,44 +22,83 @@ void LobbySession::recv() {
 			if (ec) {
 				std::cout << "READ ERR" << std::endl;
 				exit(-1);
+
+
 			}
-			while()
 			int BufferLoad = static_cast<int>(length);
-			if (curDataSize == 0) {
-				curDataSize = recvBuffer[0];
-				if (curDataSize > 200) { std::cout << "BufferErr\n" << std::endl; exit(-1); } //find a error packet
+			unsigned char* PacketPoint = recvBuffer;
+			while (0 < BufferLoad) {
+				if (curDataSize == 0) {
+					curDataSize = PacketPoint[0];
+					if (curDataSize > 200) { std::cout << "BufferErr\n" << std::endl; exit(-1); } //find a error packet
+				}
+				int build = curDataSize - prevDataSize;
+
+				if (build <= BufferLoad) {
+					memcpy(PacketData + prevDataSize, PacketPoint, build);
+					LobbyPacketProcess();
+					curDataSize = 0;
+					prevDataSize = 0;
+					BufferLoad -= build;
+					PacketPoint += build;
+				}
+				else {
+					memcpy(PacketData + prevDataSize, PacketPoint, build);
+					prevDataSize += build;
+					build = 0;
+					PacketPoint += BufferLoad;
+				}
 			}
-			int build = curDataSize - prevDataSize;
-			if (build <= BufferLoad) {
-				// 패킷 조립
-				memcpy(PacketData + prevDataSize, recvBuffer, build);
-				LobbyPacketProcess();
-				curDataSize = 0;
-				prevDataSize = 0;
-				BufferLoad -= build;
-				recvBuffer += build;
-			}
-			else {
-				// 훗날을 기약
-				memcpy(PacketData + prevDataSize, recvBuffer, build);
-				prevDataSize += build;
-				build = 0;
-				buf += data_to_process;
-			}
-
-
-
-
-
-
 			recv();
 		});
 }
 
 void LobbySession::Start() {
 	recv();
-	std::cout << "Start" << std::endl;
+	std::cout << "Start - " << userID << std::endl;
 }
+
+void LobbySession::SetAutoMatching()
+{
+}
+
+void LobbySession::MakeRoom()
+{
+}
+
+void LobbySession::EnterLobbyRoom()
+{
+}
+
+void LobbySession::IntoGameServer() {
+
+
+
+}
+void LobbySession::LobbyPacketProcess() {
+
+	switch (PacketData[1])
+	{
+	case ClickMatching:
+		SetAutoMatching();
+		break;
+	case CreateRoom:
+		MakeRoom();
+		break;
+	case EnterRoomcode:
+		EnterLobbyRoom();
+		break;
+	case GameStart:
+		IntoGameServer();
+		break;
+	default:
+		break;
+	}
+
+
+}
+
+
 
 
 void LobbyTCP::ServerAccept() {
@@ -68,14 +107,26 @@ void LobbyTCP::ServerAccept() {
 			std::cout << " AcceptError" << std::endl;
 			exit(-1);
 		}
-		int newsession = GetNewClient();
-		clients.emplace(newsession, std::make_shared<session>(std::move(mTCPSocket), newsession));
-		clients.visit(newsession, [](auto& x) {
-			x.second->Start();
-			});
 
+		if (isGameServer()) {
+			// Connect Game Server
+		}
+		else {
+			int newsession = GetNewClient();
+			clients.emplace(newsession, std::make_shared<session>(std::move(mTCPSocket), newsession));
+			clients.visit(newsession, [](auto& x) {
+				x.second->Start();
+				});
+		}
 		ServerAccept();
 		});
+}
+
+bool LobbyTCP::isGameServer() {
+	for (int i = 0; i < NumOfGameServer; ++i) {
+		if (GameServers[i] == mTCPSocket.remote_endpoint().address()) return true;
+	}
+	return false;
 }
 
 /*

@@ -1,11 +1,14 @@
 #pragma once
 
+typedef unsigned char BYTE;
 
 constexpr unsigned int SERVERPORT = 4000;
+
 const int MAXSIZE = 1024;
 const int MAXUSER = 500;
+const int RoomCodeLen = 20;
 
-//class session;
+const int NumOfGameServer = 2;
 
 
 //how to receive data? get a type? or size?
@@ -28,6 +31,14 @@ enum stagetype {
 	third
 };
 
+enum LobbyClick {
+	LogIn,
+	ClickMatching,
+	CreateRoom,
+	EnterRoomcode,
+	GameStart,
+	LogOut
+};
 
 
 
@@ -40,18 +51,49 @@ struct FXYZ {
 #pragma pack(push, 1)
 
 // Lobby
-struct CSplayerInfo 
+
+/*
+//bind max 4 socket
+struct LobbyToGame 
+{
+	char stage;
+	
+};
+*/
+
+struct CSLobbyLogin
 {
 	BYTE size;
 	BYTE type;
 	char name[20];
 };
 
-//bind max 4 socket
-struct LobbyToGame 
+struct CSLobbyLogOut
 {
-	char stage;
-	
+	BYTE size;
+	BYTE type;
+	char name[20];
+};
+
+struct CSClickMatching
+{
+	BYTE size;
+	BYTE type;
+	BYTE stageNumber;
+};
+
+struct CSEnterRoomCode
+{
+	BYTE size;
+	BYTE type;
+	char RoomCode[10];
+};
+
+struct CSCreateRoom
+{
+	BYTE size;
+	BYTE type;
+	BYTE stageNumber;
 };
 
 
@@ -63,7 +105,6 @@ struct CSmove {
 	BYTE size;
 	BYTE type;
 	FXYZ position;
-
 };
 
 
@@ -71,6 +112,8 @@ struct CSattack {
 	BYTE size;
 	BYTE type;
 	char act_type;
+	FXYZ LookVector;
+	FXYZ position;
 };
 
 
