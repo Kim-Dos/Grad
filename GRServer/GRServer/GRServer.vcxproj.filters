@@ -15,24 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GameServer.hpp">
-      <Filter>소스 파일</Filter>
+    <ClInclude Include="UDPGameServer.hpp">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Protocol.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>소스 파일</Filter>
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
-      <Filter>소스 파일</Filter>
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TCPGameServer.hpp">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GameServer.cpp">
+    <ClCompile Include="TCPGameServer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
@@ -44,7 +44,7 @@
     <ClCompile Include="Player.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="FileName.cpp">
+    <ClCompile Include="UDPGameServer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

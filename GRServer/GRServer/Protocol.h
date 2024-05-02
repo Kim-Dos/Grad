@@ -104,6 +104,8 @@ struct CSCreateRoom
 struct CSmove {
 	BYTE size;
 	BYTE type;
+	int roomnumber;
+	int usernumber;
 	FXYZ position;
 };
 

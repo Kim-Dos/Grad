@@ -1,9 +1,9 @@
 // ---------------------
 // Game Server
 // ---------------------
-#include "GameServer.hpp"
+#include "TCPGameServer.hpp"
 
-concurrent_flat_map<int, std::shared_ptr<GameSession>> clients;
+concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
 
 GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort) : mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)),
 	mTCPSocket(IOContext) {
@@ -19,7 +19,7 @@ void GameTCP::ServerAccept()
 			exit(-1);
 		}
 		int roomsession = GetRoomNumber();
-		clients.emplace(roomsession, std::make_shared<GameSession>(std::move(mTCPSocket), roomsession));
+		clients.emplace(roomsession, std::make_shared<TCPGameSession>(std::move(mTCPSocket), roomsession));
 		clients.visit(roomsession, [](auto& x) {
 			x.second->Start();
 		});
@@ -29,7 +29,7 @@ void GameTCP::ServerAccept()
 }
 
 
-void GameSession::recv() {
+void TCPGameSession::recv() {
 	auto self(shared_from_this());
 	TCPSocket.async_read_some(boost::asio::buffer(TCPrecvBuffer),
 		[this, self](boost::system::error_code ec, std::size_t length)
@@ -68,7 +68,7 @@ void GameSession::recv() {
 		});
 }
 
-GameSession::GameSession(tcp::socket tcpsock, int roomnumber) noexcept
+TCPGameSession::TCPGameSession(tcp::socket tcpsock, int roomnumber) noexcept
 	: TCPSocket(std::move(tcpsock)), RoomNumber(roomnumber)
 {
 	prevDataSize = 0, curDataSize = 0;
@@ -78,26 +78,19 @@ GameSession::GameSession(tcp::socket tcpsock, int roomnumber) noexcept
 	std::cout << "createGameSession\n";
 }
 
-GameSession::~GameSession()
+TCPGameSession::~TCPGameSession()
 {
 }
 
-void GameSession::Start()
+void TCPGameSession::Start()
 {
 	recv();
 	std::cout << "START\n";
 }
 
-void GameSession::GamePacketProcess()
+void TCPGameSession::GamePacketProcess()
 {
 	std::cout << TCPrecvBuffer << std::endl;
 }
 
-void GameUDP::StartReceive()
-{
-}
 
-GameUDP::GameUDP(boost::asio::io_context& IOContext) : mUDPSocket(IOContext, udp::endpoint(udp::v4(), SERVERPORT))
-{
-
-}

@@ -128,17 +128,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GameServer.hpp" />
+    <ClInclude Include="TCPGameServer.hpp" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Protocol.h" />
-    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="UDPGameServer.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FileName.cpp" />
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GameServer.cpp" />
+    <ClCompile Include="TCPGameServer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="UDPGameServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
