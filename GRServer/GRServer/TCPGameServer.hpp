@@ -2,6 +2,7 @@
 #include <atomic>
 #include <boost\asio.hpp>
 #include <iostream>
+#include "Player.h"
 #include "Protocol.h"
 #pragma once
 
@@ -43,7 +44,7 @@ private:
 	int userID, RoomNumber;
 	UCHAR TCPrecvBuffer[MAXSIZE]; 
 	UCHAR TCPPacketData[MAXSIZE];
-
+	Player player;
 
 	void recv();
 
@@ -57,6 +58,8 @@ public:
 	void Start();
 
 	void GamePacketProcess();
+
+	void moveCharacter();
 
 };
 

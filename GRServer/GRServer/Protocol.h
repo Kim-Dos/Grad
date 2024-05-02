@@ -22,7 +22,8 @@ enum actiontype {
 enum charactertype {
 	Attacker,
 	Sniper,
-	Assister
+	Assister,
+
 };
 
 enum stagetype {
@@ -40,6 +41,9 @@ enum LobbyClick {
 	LogOut
 };
 
+enum MOVE {
+	CSMOVE = 0x10
+};
 
 
 

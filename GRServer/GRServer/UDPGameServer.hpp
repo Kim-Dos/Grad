@@ -1,8 +1,10 @@
 #include <boost/asio.hpp>
 #include <atomic>
 #include <iostream>
+#include "TCPGameServer.hpp"
 #include "Protocol.h"
 #pragma once
+
 
 using boost::asio::ip::udp;
 

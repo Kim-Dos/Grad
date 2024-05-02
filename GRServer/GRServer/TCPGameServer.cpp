@@ -3,7 +3,7 @@
 // ---------------------
 #include "TCPGameServer.hpp"
 
-concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
+thread_local concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
 
 GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort) : mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)),
 	mTCPSocket(IOContext) {
@@ -76,6 +76,7 @@ TCPGameSession::TCPGameSession(tcp::socket tcpsock, int roomnumber) noexcept
 	ZeroMemory(TCPrecvBuffer, MAXSIZE);
 	ZeroMemory(TCPPacketData, MAXSIZE);
 	std::cout << "createGameSession\n";
+	//player = 
 }
 
 TCPGameSession::~TCPGameSession()
@@ -90,7 +91,19 @@ void TCPGameSession::Start()
 
 void TCPGameSession::GamePacketProcess()
 {
-	std::cout << TCPrecvBuffer << std::endl;
+
+	switch (TCPrecvBuffer[1])
+	{
+	case CSMOVE:
+		moveCharacter();
+	default:
+		break;
+	}
+}
+
+void TCPGameSession::moveCharacter()
+{
+
 }
 
 
