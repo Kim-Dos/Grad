@@ -42,8 +42,8 @@ private:
 	tcp::socket TCPSocket;
 	int prevDataSize, curDataSize;
 	int userID, RoomNumber;
-	UCHAR TCPrecvBuffer[MAXSIZE]; 
-	UCHAR TCPPacketData[MAXSIZE];
+	unsigned char TCPrecvBuffer[MAXSIZE]; 
+	unsigned char TCPPacketData[MAXSIZE];
 	Player player;
 
 	void recv();
@@ -60,6 +60,8 @@ public:
 	void GamePacketProcess();
 
 	void moveCharacter();
+
+	void PacketSend(void* packet);
 
 };
 

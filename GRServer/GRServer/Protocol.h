@@ -41,11 +41,11 @@ enum LobbyClick {
 	LogOut
 };
 
-enum MOVE {
-	CSMOVE = 0x10
+
+enum packettype {
+	SC_POSITION,
+	CS_MOVE
 };
-
-
 
 struct FXYZ {
 	float x, y, z;
@@ -108,9 +108,9 @@ struct CSCreateRoom
 struct CSmove {
 	BYTE size;
 	BYTE type;
+	FXYZ position;
 	int roomnumber;
 	int usernumber;
-	FXYZ position;
 };
 
 
@@ -122,6 +122,11 @@ struct CSattack {
 	FXYZ position;
 };
 
+struct SCposition {
+	BYTE size;
+	BYTE type;
+	FXYZ position;
+};
 
 
 struct SCmonster {

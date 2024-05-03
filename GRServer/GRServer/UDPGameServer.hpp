@@ -26,8 +26,8 @@ private:
 	udp::socket UDPSocket;
 	int prevDataSize, curDataSize;
 	int userID, RoomNumber;
-	UCHAR UDPrecvBuffer[MAXSIZE];
-	UCHAR UDPPacketData[MAXSIZE];
+	unsigned char UDPrecvBuffer[MAXSIZE];
+	unsigned char UDPPacketData[MAXSIZE];
 
 
 	void recv();

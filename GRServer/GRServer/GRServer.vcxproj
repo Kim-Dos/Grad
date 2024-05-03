@@ -136,7 +136,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="LobbyServer.cpp" />
     <ClCompile Include="TCPGameServer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />

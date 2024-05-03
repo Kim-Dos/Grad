@@ -30,6 +30,7 @@ void GameTCP::ServerAccept()
 
 
 void TCPGameSession::recv() {
+
 	auto self(shared_from_this());
 	TCPSocket.async_read_some(boost::asio::buffer(TCPrecvBuffer),
 		[this, self](boost::system::error_code ec, std::size_t length)
@@ -40,6 +41,7 @@ void TCPGameSession::recv() {
 
 
 			}
+			//std::cout  << "recv length" << length << std::endl;
 			int BufferLoad = static_cast<int>(length);
 			unsigned char* PacketPoint = TCPrecvBuffer;
 			while (0 < BufferLoad) {
@@ -76,7 +78,10 @@ TCPGameSession::TCPGameSession(tcp::socket tcpsock, int roomnumber) noexcept
 	ZeroMemory(TCPrecvBuffer, MAXSIZE);
 	ZeroMemory(TCPPacketData, MAXSIZE);
 	std::cout << "createGameSession\n";
-	//player = 
+	player.SetDefault();
+	player.SetPosition(1, 1, 1);
+
+
 }
 
 TCPGameSession::~TCPGameSession()
@@ -87,15 +92,24 @@ void TCPGameSession::Start()
 {
 	recv();
 	std::cout << "START\n";
+
+	SCposition packet;
+
+	packet.type = SC_POSITION;
+	packet.size = sizeof(SCposition);
+	packet.position = player.GetPos();
+
+	PacketSend(&packet);
 }
 
 void TCPGameSession::GamePacketProcess()
 {
 
-	switch (TCPrecvBuffer[1])
+	switch (1)
 	{
-	case CSMOVE:
+	case CS_MOVE:
 		moveCharacter();
+		break;
 	default:
 		break;
 	}
@@ -103,7 +117,37 @@ void TCPGameSession::GamePacketProcess()
 
 void TCPGameSession::moveCharacter()
 {
+	FXYZ position;
+	memcpy(&position, TCPPacketData+2, sizeof(FXYZ));
+	player.SetPosition(position);
 
+	SCposition packet;
+
+	packet.type = SC_POSITION;
+	packet.size = sizeof(SCposition);
+	packet.position = player.GetPos();
+
+	PacketSend(&packet);
+}
+int cnt = 0;
+void TCPGameSession::PacketSend(void* packet)
+{
+	int packetsize = reinterpret_cast<unsigned char*>(packet)[0];
+	unsigned char* buffer = new unsigned char[packetsize];
+	memcpy(buffer, packet, packetsize);
+	//auto self(shared_from_this());
+	std::cout << cnt++ << std::endl;
+	TCPSocket.async_write_some(boost::asio::buffer(buffer, static_cast<size_t>(packetsize)),
+		[this, buffer, packetsize](boost::system::error_code ec, std::size_t bytes_transferred)
+		{
+			if (!ec)
+			{
+				if (packetsize != bytes_transferred) {
+					cout << "ERR - Bytes_transferred\n";
+				}
+				delete buffer;
+			}
+		});
 }
 
 
