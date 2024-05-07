@@ -129,14 +129,15 @@
   <ItemGroup>
     <ClCompile Include="..\..\GRServer\GRServer\GameObject.cpp" />
     <ClCompile Include="Exclient.cpp" />
+    <ClCompile Include="UDPClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\GRServer\GRServer\GameObject.h" />
-    <ClInclude Include="..\..\GRServer\GRServer\Player.h" />
     <ClInclude Include="..\..\GRServer\GRServer\Protocol.h" />
+    <ClInclude Include="UDPClient.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,7 +3,6 @@
 #include "MathHelper.h"
 #include "Protocol.h"
 
-using namespace std;
 
 
 

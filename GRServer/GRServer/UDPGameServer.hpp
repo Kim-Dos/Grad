@@ -28,6 +28,7 @@ private:
 	int userID, RoomNumber;
 	unsigned char UDPrecvBuffer[MAXSIZE];
 	unsigned char UDPPacketData[MAXSIZE];
+	Player character;
 
 
 	void recv();

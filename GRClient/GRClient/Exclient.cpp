@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <conio.h>
+#include "UDPClient.hpp"
 #include "../../../Grad/GRServer/GRServer\GameObject.h"
 #include "../../../Grad/GRServer/GRServer\Protocol.h"
 
@@ -9,7 +10,9 @@ using boost::asio::ip::tcp;
 
 const char* ip = "127.0.0.1";
 int port = 4000;
-
+boost::asio::ip::tcp::endpoint LobbyIP(boost::asio::ip::address::from_string(ip), port);
+boost::asio::ip::tcp::endpoint TCPGameIP;
+boost::asio::ip::udp::endpoint UDPGameIP(boost::asio::ip::address::from_string(ip), port);
 
 class TCPC 
 	//: public std::enable_shared_from_this<TCPC>
@@ -22,9 +25,9 @@ public:
 		ZeroMemory(recvBuffer, MAXSIZE);
 		ZeroMemory(PacketData, MAXSIZE);
 
-		msocket.async_connect(tcp::endpoint(boost::asio::ip::address::from_string(ip), port), [](boost::system::error_code ec) {
+		msocket.async_connect(LobbyIP, [](boost::system::error_code ec) {
 			if (ec) { std::cout << ec.what() << std::endl;  exit(-1); }
-			});
+		});
 		character.SetDefault();
 		character.SetPosition(99, 99, 99);
 
@@ -67,12 +70,7 @@ private:
 
 					if (build <= BufferLoad) {
 						memcpy(PacketData + prevDataSize, PacketPoint, build);
-						//SCposition pack;
-						//memcpy(&pack, PacketData, length);
 
-						//std::cout << length << prevDataSize << std::endl;
-						//std::cout << pack.size << pack.type << pack.position.x << pack.position.y << pack.position.z << std::endl;
-						//std::cout << character.GetPosX() << character.GetPosY() << character.GetPosZ() << std::endl;
 						ClientPacketProcess();
 						curDataSize = 0;
 						prevDataSize = 0;
@@ -103,7 +101,7 @@ private:
 				if (!ec)
 				{
 					if (packetsize != bytes_transferred) {
-						cout << "ERR - Bytes_transferred\n";
+						std::cout << "ERR - Bytes_transferred\n";
 					}
 					delete buffer;
 				}
@@ -171,6 +169,8 @@ private:
 
 };
 
+
+
 void worker(boost::asio::io_context* service) {
 	service->run();
 }
@@ -181,7 +181,7 @@ int main()
 	std::vector<std::thread> th;
 
 	boost::asio::io_context iocont;
-	TCPC tt(iocont);
+	UDPC tt(iocont);
 
 	th.emplace_back(worker, &iocont);
 	th.front().join();

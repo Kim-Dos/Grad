@@ -143,7 +143,7 @@ void TCPGameSession::PacketSend(void* packet)
 			if (!ec)
 			{
 				if (packetsize != bytes_transferred) {
-					cout << "ERR - Bytes_transferred\n";
+					std::cout << "ERR - Bytes_transferred\n";
 				}
 				delete buffer;
 			}
