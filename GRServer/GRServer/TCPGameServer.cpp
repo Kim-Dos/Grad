@@ -100,19 +100,13 @@ void TCPGameSession::Start()
 	packet.position = player.GetPos();
 
 	PacketSend(&packet);
+
 }
 
 void TCPGameSession::GamePacketProcess()
 {
 
-	switch (1)
-	{
-	case CS_MOVE:
-		moveCharacter();
-		break;
-	default:
-		break;
-	}
+
 }
 
 void TCPGameSession::moveCharacter()
@@ -129,14 +123,14 @@ void TCPGameSession::moveCharacter()
 
 	PacketSend(&packet);
 }
-int cnt = 0;
+
+
 void TCPGameSession::PacketSend(void* packet)
 {
 	int packetsize = reinterpret_cast<unsigned char*>(packet)[0];
 	unsigned char* buffer = new unsigned char[packetsize];
 	memcpy(buffer, packet, packetsize);
 	//auto self(shared_from_this());
-	std::cout << cnt++ << std::endl;
 	TCPSocket.async_write_some(boost::asio::buffer(buffer, static_cast<size_t>(packetsize)),
 		[this, buffer, packetsize](boost::system::error_code ec, std::size_t bytes_transferred)
 		{

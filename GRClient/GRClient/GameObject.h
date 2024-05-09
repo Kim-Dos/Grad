@@ -1,7 +1,7 @@
 #pragma once
-#include"stdafx.h"
-#include "MathHelper.h"
-#include "Protocol.h"
+//#include"stdafx.h"
+//#include "MathHelper.h"
+#include "..\..\..\Grad\GRServer\GRServer\Protocol.h"
 
 using namespace std;
 

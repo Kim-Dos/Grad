@@ -128,7 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="LobbyServer.h" />
+    <ClInclude Include="LobbyServer.hpp" />
     <ClInclude Include="TCPGameServer.hpp" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Protocol.h" />
@@ -136,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="LobbyServer.cpp" />
     <ClCompile Include="TCPGameServer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />

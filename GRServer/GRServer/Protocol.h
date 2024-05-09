@@ -1,5 +1,6 @@
 #pragma once
 
+typedef unsigned char BYTE;
 
 constexpr unsigned int SERVERPORT = 4000;
 
@@ -63,44 +64,44 @@ struct FXYZ {
 //bind max 4 socket
 struct LGLobbyToGame 
 {
-	INT stage;
-	INT port;
-	CHAR ip[20];
+	int stage;
+	int L2Gport;
+	char L2Gip[20];
 };
 
 
 struct CSLobbyLogin
 {
 	BYTE size;
-	BYTE type = CS_LOGIN;
+	BYTE type;
 	char name[20];
 };
 
 struct CSLobbyLogOut
 {
 	BYTE size;
-	BYTE type = CS_LOGOUT;
+	BYTE type;
 	char name[20];
 };
 
 struct CSClickMatching
 {
 	BYTE size;
-	BYTE type = CS_QUICK_MATCHING;
+	BYTE type;
 	BYTE stageNumber;
 };
 
 struct CSEnterRoomCode
 {
 	BYTE size;
-	BYTE type = CS_ENTER_ROOM_CODE;
+	BYTE type;
 	char RoomCode[10];
 };
 
 struct CSCreateRoom
 {
-	BYTE size;
-	BYTE type = CS_CREATE_ROOM;
+	BYTE size;	
+	BYTE type;
 	BYTE stageNumber;
 };
 
@@ -111,7 +112,7 @@ struct CSCreateRoom
 // charcater move
 struct CSmove {
 	BYTE size;
-	BYTE type = CS_MOVEMENT;
+	BYTE type;
 	FXYZ position;
 	int plyatimer;
 	int roomnumber;
@@ -121,7 +122,7 @@ struct CSmove {
 
 struct CSattack {
 	BYTE size;
-	BYTE type = CS_ATTACK;
+	BYTE type;
 	char act_type;
 	FXYZ LookVector;
 	FXYZ position;

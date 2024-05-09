@@ -1,5 +1,6 @@
 #include <boost/asio.hpp>
 #include <atomic>
+#include <map>
 #include <iostream>
 #include "TCPGameServer.hpp"
 #include "Protocol.h"
@@ -9,14 +10,21 @@
 using boost::asio::ip::udp;
 
 class GameUDP {
+private:
 	udp::socket mUDPSocket;
 	udp::endpoint remote_endpoint;
-	
+	int roomNumber = 0;
 
 
 public:
 
 	GameUDP(boost::asio::io_context& IOContext, int port) noexcept;
+
+	inline int GetRoomNumber() { return roomNumber++; }
+
+	//udp::endpoint Get_remote_endpoint() inline { return remote_endpoint; }
+
+	//void Set_remote_endpoint(std::string str, int port);
 };
 
 class UDPGameSession
@@ -28,7 +36,8 @@ private:
 	int userID, RoomNumber;
 	unsigned char UDPrecvBuffer[MAXSIZE];
 	unsigned char UDPPacketData[MAXSIZE];
-	Player character;
+	udp::endpoint remote;
+	Player player;
 
 
 	void recv();
@@ -44,4 +53,7 @@ public:
 
 	void UDPPacketProcess();
 
+	void moveCharacter();
+
+	void PacketSend(void* packet);
 };

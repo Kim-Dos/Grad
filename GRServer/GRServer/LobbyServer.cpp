@@ -1,6 +1,6 @@
 
 #include "Protocol.h"
-#include "LobbyServer.h"
+#include "LobbyServer.hpp"
 std::atomic_int NumOfClient = 0;
 
 
@@ -70,23 +70,23 @@ void LobbySession::EnterLobbyRoom()
 {
 }
 
-void LobbySession::IntoGameServer() {
-
+void LobbySession::IntoGameServer() 
+{
 }
 void LobbySession::LobbyPacketProcess() {
 
 	switch (PacketData[1])
 	{
-	case ClickMatching:
+	case CS_QUICK_MATCHING:
 		SetAutoMatching();
 		break;
-	case CreateRoom:
+	case CS_CREATE_ROOM:
 		MakeRoom();
 		break;
-	case EnterRoomcode:
+	case CS_ENTER_ROOM_CODE:
 		EnterLobbyRoom();
 		break;
-	case GameStart:
+	case CS_START_GAME:
 		IntoGameServer();
 		break;
 	default:
@@ -111,13 +111,14 @@ void LobbyTCP::ServerAccept() {
 		}
 		else {
 			int newsession = GetNewClient();
-			clients.emplace(newsession, std::make_shared<session>(std::move(mTCPSocket), newsession));
+			clients.emplace(newsession, std::make_shared<LobbySession>(std::move(mTCPSocket), newsession));
 			clients.visit(newsession, [](auto& x) {
 				x.second->Start();
 				});
 		}
 		ServerAccept();
 		});
+
 }
 
 bool LobbyTCP::isGameServer() {

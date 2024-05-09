@@ -13,11 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="LOBBY">
+      <UniqueIdentifier>{e74a6221-6652-4865-b433-ae0ea6bbf4c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GAME">
+      <UniqueIdentifier>{5275e444-c439-401f-a1bc-d85d7a683110}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="UDPGameServer.hpp">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Protocol.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -27,17 +30,17 @@
     <ClInclude Include="GameObject.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="TCPGameServer.hpp">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="LobbyServer.hpp">
+      <Filter>LOBBY</Filter>
     </ClInclude>
-    <ClInclude Include="LobbyServer.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="TCPGameServer.hpp">
+      <Filter>GAME</Filter>
+    </ClInclude>
+    <ClInclude Include="UDPGameServer.hpp">
+      <Filter>GAME</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TCPGameServer.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -47,8 +50,14 @@
     <ClCompile Include="Player.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="LobbyServer.cpp">
+      <Filter>LOBBY</Filter>
+    </ClCompile>
+    <ClCompile Include="TCPGameServer.cpp">
+      <Filter>GAME</Filter>
+    </ClCompile>
     <ClCompile Include="UDPGameServer.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>GAME</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -2,12 +2,24 @@
 
 
 extern thread_local concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
-
+thread_local concurrent_flat_map<int, std::shared_ptr<UDPGameSession>> udp_clients;
 
 GameUDP::GameUDP(boost::asio::io_context& IOContext, int port) noexcept
 	: mUDPSocket(IOContext, udp::endpoint(udp::v4(),port))
 {
+	int roomsession = GetRoomNumber();
+	udp_clients.emplace(roomsession, std::make_shared<UDPGameSession>(std::move(mUDPSocket)));
+	udp_clients.visit(roomsession, [](auto& x) {
+		x.second->Start();
+	});
 }
+
+//void GameUDP::Set_remote_endpoint(std::string str, int port)
+//{
+//	[this](auto& x) {
+//		x->remote_endpoint(boost::asio::ip::address::from_string(str), port)) };
+//}
+
 
 
 UDPGameSession::UDPGameSession(udp::socket udpsock) noexcept
@@ -19,6 +31,10 @@ UDPGameSession::UDPGameSession(udp::socket udpsock) noexcept
 	userID = 0;
 	curDataSize = 0;
 	prevDataSize = 0;
+	player.SetDefault();
+	player.SetPosition(1, 1, 1);
+	std::cout << player.GetPosX() << player.GetPosY() << player.GetPosZ() << std::endl;
+
 }
 
 UDPGameSession::~UDPGameSession()
@@ -29,18 +45,42 @@ void UDPGameSession::Start()
 {
 	std::cout << "UDPStart\n";
 	recv();
-
 }
 
 void UDPGameSession::UDPPacketProcess()
 {
+
+
+	switch (UDPPacketData[1])
+	{
+	case CS_MOVE:
+		moveCharacter();
+		break;
+	default:
+		break;
+	}
 }
 
+void UDPGameSession::moveCharacter()
+{
+	FXYZ position;
+	memcpy(&position, UDPPacketData + 2, sizeof(FXYZ));
+	player.SetPosition(position);
+
+	SCposition packet;
+
+	packet.type = SC_POSITION;
+	packet.size = sizeof(SCposition);
+	packet.position = player.GetPos();
+
+	PacketSend(&packet);
+}
 
 
 void UDPGameSession::recv()
 {
-	UDPSocket.async_receive(boost::asio::buffer(UDPrecvBuffer),
+	
+	UDPSocket.async_receive_from(boost::asio::buffer(UDPrecvBuffer), remote,
 		[this](boost::system::error_code ec, std::size_t length)
 		{
 			if (ec) {
@@ -76,4 +116,24 @@ void UDPGameSession::recv()
 			recv();
 		});
 
+}
+
+void UDPGameSession::PacketSend(void* packet)
+{
+	int packetsize = reinterpret_cast<unsigned char*>(packet)[0];
+	unsigned char* buffer = new unsigned char[packetsize];
+	memcpy(buffer, packet, packetsize);
+	//auto self(shared_from_this());
+
+	UDPSocket.async_send_to(boost::asio::buffer(buffer, static_cast<size_t>(packetsize)), remote,
+		[this, buffer, packetsize](boost::system::error_code ec, std::size_t bytes_transferred)
+		{
+			if (!ec)
+			{
+				if (packetsize != bytes_transferred) {
+					std::cout << "ERR - Bytes_transferred\n";
+				}
+				delete buffer;
+			}
+		});
 }

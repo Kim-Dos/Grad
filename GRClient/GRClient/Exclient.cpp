@@ -2,7 +2,7 @@
 #include <boost/asio.hpp>
 #include <conio.h>
 #include "UDPClient.hpp"
-#include "../../../Grad/GRServer/GRServer\GameObject.h"
+#include "GameObject.h"
 #include "../../../Grad/GRServer/GRServer\Protocol.h"
 
 
@@ -181,7 +181,7 @@ int main()
 	std::vector<std::thread> th;
 
 	boost::asio::io_context iocont;
-	UDPC tt(iocont);
+	TCPC tt(iocont);
 
 	th.emplace_back(worker, &iocont);
 	th.front().join();

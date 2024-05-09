@@ -26,7 +26,6 @@ private:
 	int roomNumber = 0;
 	tcp::socket mTCPSocket;
 	tcp::acceptor mTCPAcceptor;
-	//concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
 	void ServerAccept();
 };
 
