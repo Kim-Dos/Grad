@@ -55,5 +55,7 @@ public:
 
 	void moveCharacter();
 
+	void generalAttack();
+
 	void PacketSend(void* packet);
 };

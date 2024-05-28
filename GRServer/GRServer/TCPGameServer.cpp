@@ -78,8 +78,7 @@ TCPGameSession::TCPGameSession(tcp::socket tcpsock, int roomnumber) noexcept
 	ZeroMemory(TCPrecvBuffer, MAXSIZE);
 	ZeroMemory(TCPPacketData, MAXSIZE);
 	std::cout << "createGameSession\n";
-	player.SetDefault();
-	player.SetPosition(1, 1, 1);
+
 
 
 }
@@ -93,13 +92,6 @@ void TCPGameSession::Start()
 	recv();
 	std::cout << "START\n";
 
-	SCposition packet;
-
-	packet.type = SC_POSITION;
-	packet.size = sizeof(SCposition);
-	packet.position = player.GetPos();
-
-	PacketSend(&packet);
 
 }
 
@@ -109,20 +101,6 @@ void TCPGameSession::GamePacketProcess()
 
 }
 
-void TCPGameSession::moveCharacter()
-{
-	FXYZ position;
-	memcpy(&position, TCPPacketData+2, sizeof(FXYZ));
-	player.SetPosition(position);
-
-	SCposition packet;
-
-	packet.type = SC_POSITION;
-	packet.size = sizeof(SCposition);
-	packet.position = player.GetPos();
-
-	PacketSend(&packet);
-}
 
 
 void TCPGameSession::PacketSend(void* packet)

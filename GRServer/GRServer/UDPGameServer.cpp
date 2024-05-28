@@ -53,9 +53,11 @@ void UDPGameSession::UDPPacketProcess()
 
 	switch (UDPPacketData[1])
 	{
-	case CS_MOVE:
+	case CS_MOVEMENT:
 		moveCharacter();
 		break;
+	case CS_ATTACK:
+		generalAttack();
 	default:
 		break;
 	}
@@ -67,13 +69,18 @@ void UDPGameSession::moveCharacter()
 	memcpy(&position, UDPPacketData + 2, sizeof(FXYZ));
 	player.SetPosition(position);
 
-	SCposition packet;
+	std::cout << player.GetPosX() << player.GetPosY() << player.GetPosZ() << std::endl;
+	//SCPosition packet;
 
-	packet.type = SC_POSITION;
-	packet.size = sizeof(SCposition);
-	packet.position = player.GetPos();
+	//packet.type = SC_POSITION;
+	//packet.size = sizeof(SCPosition);
+	//packet.position = player.GetPos();
 
-	PacketSend(&packet);
+	//PacketSend(&packet);
+}
+
+void UDPGameSession::generalAttack()
+{
 }
 
 

@@ -4,6 +4,8 @@ typedef unsigned char BYTE;
 
 constexpr unsigned int SERVERPORT = 4000;
 
+const char* Lobby_IP = "127.0.0.1";
+
 const int MAXSIZE = 1024;
 const int MAXUSER = 500;
 const int RoomCodeLen = 20;
@@ -13,23 +15,29 @@ const int NumOfGameServer = 2;
 
 //how to receive data? get a type? or size?
 enum All_Packet_Type {
-	// Lobby - Client to Server 
+	// Client -> Lobby 
 	CS_LOGIN,
 	CS_LOGOUT,
 	CS_QUICK_MATCHING,
 	CS_ENTER_ROOM_CODE,
 	CS_CREATE_ROOM,
 	CS_START_GAME,
-	// Lobby - Server to Client
-	// Game - Client to Server
+	// Lobby -> Client
+	SC_LOG_INFO, // 로그인과 대비
+	SC_PUSH_MATCHING_Q, // 퀵매칭과 대비
+	SC_FIND_ROOM_CODE, // 룸코드입장과 대비
+	SC_ROOM_CREATE, // 방 생성과 대비
+	// Client -> Server
 	CS_MOVEMENT,
 	CS_ATTACK,
+	// Server -> Client
+	SC_MOVEMENT,
+	SC_CHECKATTACK
 };
 
-enum actiontype {
+enum Skilltype {
 	NormalSkill,
 	UltimitSkill,
-	Attack
 };
 
 enum charactertype {
@@ -46,10 +54,11 @@ enum stagetype {
 };
 
 
-enum packettype {
-	SC_POSITION,
-	CS_MOVE
+struct ButtonPack {
+	void* packet;
+	BYTE type;
 };
+
 
 struct FXYZ {
 	float x, y, z;
@@ -61,6 +70,7 @@ struct FXYZ {
 // Lobby
 
 
+//---------------Lobby - GameServer----------
 //bind max 4 socket
 struct LGLobbyToGame 
 {
@@ -70,6 +80,7 @@ struct LGLobbyToGame
 };
 
 
+//--------------Lobby - Client---------------
 struct CSLobbyLogin
 {
 	BYTE size;
@@ -95,7 +106,7 @@ struct CSEnterRoomCode
 {
 	BYTE size;
 	BYTE type;
-	char RoomCode[10];
+	char RoomCode[RoomCodeLen];
 };
 
 struct CSCreateRoom
@@ -105,22 +116,55 @@ struct CSCreateRoom
 	BYTE stageNumber;
 };
 
+struct CSStartGame {
+	BYTE size;
+	BYTE type;
+};
+
+struct SCLogInfo {
+	BYTE size;
+	BYTE type;
+	bool exist;
+};
+
+struct SCPuahMatchingQ
+{
+	BYTE size;
+	BYTE type;
+};
+
+struct SCFindRoomCode {
+
+	BYTE size;
+	BYTE type;
+	bool exist;
+};
+
+struct SCRoomCreate
+{
+	BYTE size;
+	BYTE type;
+	char RoomCode[RoomCodeLen];
+};
+
 
 
 // Game
 
 // charcater move
-struct CSmove {
+struct CSMove {
 	BYTE size;
 	BYTE type;
 	FXYZ position;
-	int plyatimer;
+	FXYZ velocity;
+	FXYZ look;
+	int play_timer;
 	int roomnumber;
 	int usernumber;
 };
 
 
-struct CSattack {
+struct CSAttack {
 	BYTE size;
 	BYTE type;
 	char act_type;
@@ -128,22 +172,20 @@ struct CSattack {
 	FXYZ position;
 };
 
-struct SCposition {
+struct SCPosition {
 	BYTE size;
 	BYTE type;
 	FXYZ position;
 };
 
 
-struct SCmonster {
+struct SCMonster {
 	BYTE size;
 	BYTE type;
 	FXYZ pos;
 	char act;
 
-
-
-	//send changing model data
+	//send changing model data?
 };
 
 

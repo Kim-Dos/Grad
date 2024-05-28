@@ -28,8 +28,7 @@ public:
 		msocket.async_connect(LobbyIP, [](boost::system::error_code ec) {
 			if (ec) { std::cout << ec.what() << std::endl;  exit(-1); }
 		});
-		character.SetDefault();
-		character.SetPosition(99, 99, 99);
+
 
 		recv();
 	}
@@ -111,7 +110,7 @@ private:
 	void ClientPacketProcess() {
 		switch (PacketData[1])
 		{
-		case SC_POSITION:
+		case SC_MOVE:
 			Character_Positioning();
 		default:
 			break;

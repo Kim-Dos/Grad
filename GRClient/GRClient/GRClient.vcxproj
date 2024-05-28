@@ -128,7 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\GRServer\GRServer\GameObject.cpp" />
-    <ClCompile Include="Exclient.cpp" />
+    <ClCompile Include="TCPClient.cpp" />
     <ClCompile Include="UDPClient.cpp" />
   </ItemGroup>
   <ItemGroup>

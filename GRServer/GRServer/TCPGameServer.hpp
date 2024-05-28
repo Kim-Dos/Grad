@@ -20,7 +20,6 @@ public:
 
 	inline int GetRoomNumber() { return roomNumber++; }
 
-	void PacketProcess() {}
 
 private:
 	int roomNumber = 0;
@@ -57,8 +56,6 @@ public:
 	void Start();
 
 	void GamePacketProcess();
-
-	void moveCharacter();
 
 	void PacketSend(void* packet);
 

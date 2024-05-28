@@ -1,5 +1,6 @@
 #include "TCPGameServer.hpp"
 #include "UDPGameServer.hpp"
+#include "GametoLobby.hpp"
 #include "Player.h"
 
 
@@ -14,9 +15,9 @@ void worker_thread(const int i)
 {
 	boost::asio::io_context IoContext;
 
+	GametoLobby gameconnectlobby(IoContext);
 	GameTCP tcpAcceptor(IoContext, SERVERPORT+i);
 	GameUDP udpAcceptor(IoContext, SERVERPORT+i);
-
 	IoContext.run();
 }
 

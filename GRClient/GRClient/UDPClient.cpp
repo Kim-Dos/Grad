@@ -1,16 +1,36 @@
 #include "UDPClient.hpp"
 
+boost::asio::ip::udp::endpoint UDPGameIP(boost::asio::ip::address::from_string("127.0.0.1"), 4000);
+
 UDPC::UDPC(boost::asio::io_context& service) noexcept
 	: mUDPSocket(service)
 {
 	prevDataSize = 0, curDataSize = 0;
 	ZeroMemory(recvBuffer, MAXSIZE);
 	ZeroMemory(PacketData, MAXSIZE);
+
+
 	mUDPSocket.async_connect(UDPGameIP, [this](boost::system::error_code ec) {
 		if (ec) { std::cout << ec.what() << std::endl; exit(-1); }
-		});
-	character.SetDefault();
-	character.SetPosition(99, 99, 99);
+	});
+
+}
+class Player;
+
+void UDPC::SendPosition(Player& pl)
+{
+	CSMove packet;
+	ZeroMemory(&packet, sizeof(CSMove));
+	packet.size = sizeof(CSMove);
+	packet.type = SC_MOVEMENT;
+	XMFLOAT3 temp = pl.GetVelocity();
+	memcpy(&packet.velocity, &temp, sizeof(FXYZ));
+	temp = pl.GetLook();
+	memcpy(&packet.look, &temp, sizeof(FXYZ));
+	temp = pl.GetPosition();
+	memcpy(&packet.position, &temp, sizeof(FXYZ));
+
+	Packetsend(&packet);
 }
 
 

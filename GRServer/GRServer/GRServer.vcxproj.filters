@@ -39,6 +39,9 @@
     <ClInclude Include="UDPGameServer.hpp">
       <Filter>GAME</Filter>
     </ClInclude>
+    <ClInclude Include="GametoLobby.hpp">
+      <Filter>GAME</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -57,6 +60,9 @@
       <Filter>GAME</Filter>
     </ClCompile>
     <ClCompile Include="UDPGameServer.cpp">
+      <Filter>GAME</Filter>
+    </ClCompile>
+    <ClCompile Include="GametoLobby.cpp">
       <Filter>GAME</Filter>
     </ClCompile>
   </ItemGroup>
