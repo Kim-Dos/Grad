@@ -18,7 +18,18 @@ class GametoLobby {
 
 	void Connect_Handler(boost::system::error_code ec);
 
+	void GameLobbyProcess();
+
+	void recv();
+
+	void SendPacket(void* packet);
+
 	void LobbyConnect();
+
 public:
 	GametoLobby(boost::asio::io_context& context) noexcept;
+	
+	~GametoLobby() {}
+
+	void timeSend();
 };

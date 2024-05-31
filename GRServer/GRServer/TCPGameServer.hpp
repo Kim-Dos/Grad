@@ -62,4 +62,10 @@ public:
 };
 
 
+class GameRoom {
+
+
+};
+
+
 

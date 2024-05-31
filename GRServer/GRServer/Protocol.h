@@ -27,6 +27,13 @@ enum All_Packet_Type {
 	SC_PUSH_MATCHING_Q, // 퀵매칭과 대비
 	SC_FIND_ROOM_CODE, // 룸코드입장과 대비
 	SC_ROOM_CREATE, // 방 생성과 대비
+	// Lobby -> Game
+	LG_ROOMINFO,		//방을 생성하고, 입력된 정보를 통해 클라이언트 인원들을 받아라
+	LG_REFAIRROOM,		// (서버하나 다운시) 다른 서버에서있는 정보를 읽어와서 너가 기존게임을 이어가라
+	// Game -> Lobby
+	GL_SERVERAMOUNT, // 서버에 얼만큼 차있는지
+	GL_ENDGAME,		//서버에서 게임이 끝났다. ( == 클라이언트 정보들을 가져가라)
+
 	// Client -> Server
 	CS_MOVEMENT,
 	CS_ATTACK,
