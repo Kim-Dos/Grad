@@ -7,7 +7,6 @@
 #pragma once
 
 using boost::concurrent_flat_map;
-
 using boost::asio::ip::tcp;
 
 //TCP Acceptor
@@ -63,7 +62,13 @@ public:
 
 
 class GameRoom {
+private:
+	std::vector<TCPGameSession> players;
+	std::vector<GameObject> otherObj;
 
+
+public:
+	bool IsDamaged();
 
 };
 
