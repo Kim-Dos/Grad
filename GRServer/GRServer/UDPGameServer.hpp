@@ -49,6 +49,8 @@ public:
 
 	~UDPGameSession();
 
+	void timeSend();
+
 	void Start();
 
 	void UDPPacketProcess();

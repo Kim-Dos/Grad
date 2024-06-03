@@ -41,6 +41,10 @@ UDPGameSession::~UDPGameSession()
 {
 }
 
+void UDPGameSession::timeSend()
+{
+}
+
 void UDPGameSession::Start()
 {
 	std::cout << "UDPStart\n";
@@ -67,14 +71,15 @@ void UDPGameSession::moveCharacter()
 {
 	FXYZ position;
 	memcpy(&position, UDPPacketData + 2, sizeof(FXYZ));
-	player.SetPosition(position);
+	player.SetPosition(position);  
 
 	std::cout << player.GetPosX() << player.GetPosY() << player.GetPosZ() << std::endl;
-	//SCPosition packet;
 
-	//packet.type = SC_POSITION;
-	//packet.size = sizeof(SCPosition);
-	//packet.position = player.GetPos();
+	clients.cvisit_all([](auto x) { if (x->second.getRemoteAdress() != remote.adress()) {
+
+
+	}
+		});
 
 	//PacketSend(&packet);
 }
@@ -82,7 +87,6 @@ void UDPGameSession::moveCharacter()
 void UDPGameSession::generalAttack()
 {
 }
-
 
 void UDPGameSession::recv()
 {

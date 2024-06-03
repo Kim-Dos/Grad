@@ -34,12 +34,12 @@ enum All_Packet_Type {
 	GL_SERVERAMOUNT, // 서버에 얼만큼 차있는지
 	GL_ENDGAME,		//서버에서 게임이 끝났다. ( == 클라이언트 정보들을 가져가라)
 
-	// Client -> Server
+	// Client -> Game
 	CS_MOVEMENT,
 	CS_ATTACK,
-	// Server -> Client
+	// Game -> Client
 	SC_MOVEMENT,
-	SC_CHECKATTACK
+	SC_CHECKATTACK,
 };
 
 enum Skilltype {
@@ -66,6 +66,12 @@ struct ButtonPack {
 	BYTE type;
 };
 
+struct MoveData {
+	FXYZ position;
+	FXYZ velocity;
+	FXYZ look;
+	char act;
+};
 
 struct FXYZ {
 	float x, y, z;
@@ -77,7 +83,7 @@ struct FXYZ {
 // Lobby
 
 
-//---------------Lobby - GameServer----------
+//---------------Lobby -> GameServer   (Receive Client)----------
 //bind max 4 socket
 struct LGLobbyToGame 
 {
@@ -154,7 +160,11 @@ struct SCRoomCreate
 	char RoomCode[RoomCodeLen];
 };
 
-
+struct GLServerAmount {
+	BYTE size;
+	BYTE type;
+	size_t amount;
+};
 
 // Game
 
@@ -162,12 +172,17 @@ struct SCRoomCreate
 struct CSMove {
 	BYTE size;
 	BYTE type;
-	FXYZ position;
-	FXYZ velocity;
-	FXYZ look;
+	MoveData movedata;
 	int play_timer;
 	int roomnumber;
 	int usernumber;
+};
+
+struct SCPlayerMove {
+	BYTE size;
+	BYTE type;
+	int usernumber;
+	MoveData movedtata;
 };
 
 

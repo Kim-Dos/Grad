@@ -87,6 +87,11 @@ TCPGameSession::~TCPGameSession()
 {
 }
 
+boost::asio::ip::address_v4 TCPGameSession::getRemoteAdress()
+{
+	return TCPSocket.remote_endpoint().address().to_v4();
+}
+
 void TCPGameSession::Start()
 {
 	recv();

@@ -1,5 +1,8 @@
 #include "GametoLobby.hpp"
 
+
+extern thread_local concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
+
 void GametoLobby:: Connect_Handler(boost::system::error_code ec)
 {
 	if (ec) {
@@ -64,8 +67,12 @@ GametoLobby::GametoLobby(boost::asio::io_context& context) noexcept
 
 void GametoLobby::timeSend()
 {
-
-}
+	GLServerAmount packet;
+	packet.size = sizeof(GLServerAmount);
+	packet.type = GL_SERVERAMOUNT;
+	packet.amount = clients.size();
+	SendPacket(&packet);
+}	
 
 
 void GametoLobby::recv() {

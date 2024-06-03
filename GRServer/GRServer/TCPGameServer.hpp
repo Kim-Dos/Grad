@@ -41,16 +41,16 @@ private:
 	int userID, RoomNumber;
 	unsigned char TCPrecvBuffer[MAXSIZE]; 
 	unsigned char TCPPacketData[MAXSIZE];
-	Player player;
 
 	void recv();
 
 public:
 
-
 	TCPGameSession(tcp::socket tcpsock, int roomnumber) noexcept;
 	
 	~TCPGameSession();
+
+	boost::asio::ip::address_v4 getRemoteAdress();
 
 	void Start();
 
@@ -61,10 +61,15 @@ public:
 };
 
 
-class GameRoom {
+class GameRoom 
+	: public std::enable_shared_from_this<GameRoom>
+{
 private:
-	std::vector<TCPGameSession> players;
+	int RoomNumber;
+	char RoomCode[20];
+
 	std::vector<GameObject> otherObj;
+	std::vector<Player> players;
 
 
 public:
