@@ -17,11 +17,7 @@ public:
 	GameTCP(boost::asio::io_context& IOContext, int ServerPort);
 	
 
-	inline int GetRoomNumber() { return roomNumber++; }
-
-
 private:
-	int roomNumber = 0;
 	tcp::socket mTCPSocket;
 	tcp::acceptor mTCPAcceptor;
 	void ServerAccept();
@@ -38,9 +34,11 @@ private:
 
 	tcp::socket TCPSocket;
 	int prevDataSize, curDataSize;
-	int userID, RoomNumber;
+	int PartyNumber;
 	unsigned char TCPrecvBuffer[MAXSIZE]; 
 	unsigned char TCPPacketData[MAXSIZE];
+
+	Player player;
 
 	void recv();
 
@@ -58,6 +56,8 @@ public:
 
 	void PacketSend(void* packet);
 
+	inline Player& getPlayer() { return player; }
+
 };
 
 
@@ -65,14 +65,15 @@ class GameRoom
 	: public std::enable_shared_from_this<GameRoom>
 {
 private:
-	int RoomNumber;
-	char RoomCode[20];
+	unsigned char stagenumber;
 
+	std::vector<TCPGameSession> userIPS;
 	std::vector<GameObject> otherObj;
-	std::vector<Player> players;
 
 
 public:
+	GameRoom(unsigned char stageNum);
+
 	bool IsDamaged();
 
 };

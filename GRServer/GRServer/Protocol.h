@@ -8,50 +8,51 @@ const char* Lobby_IP = "127.0.0.1";
 
 const int MAXSIZE = 1024;
 const int MAXUSER = 500;
-const int RoomCodeLen = 20;
+const int RoomCodeLen = 14;
 
+const int ipsize = 16;
 const int NumOfGameServer = 2;
 
 
 //how to receive data? get a type? or size?
 enum All_Packet_Type {
 	// Client -> Lobby 
-	CS_LOGIN,
-	CS_LOGOUT,
-	CS_QUICK_MATCHING,
-	CS_ENTER_ROOM_CODE,
-	CS_CREATE_ROOM,
-	CS_START_GAME,
+	CL_LOGIN,
+	CL_LOGOUT,
+	CL_QUICK_MATCHING,
+	CL_ENTER_ROOM_CODE,
+	CL_CREATE_ROOM,
+	CL_START_GAME,
+	// Client -> Game
+	CG_MOVEMENT,
+	CG_ATTACK,
+
 	// Lobby -> Client
-	SC_LOG_INFO, // 로그인과 대비
-	SC_PUSH_MATCHING_Q, // 퀵매칭과 대비
-	SC_FIND_ROOM_CODE, // 룸코드입장과 대비
-	SC_ROOM_CREATE, // 방 생성과 대비
+	LC_LOG_INFO, // 로그인과 대비
+	LC_PUSH_MATCHING_Q, // 퀵매칭과 대비
+	LC_FIND_ROOM_CODE, // 룸코드입장과 대비
+	LC_ROOM_CREATE, // 방 생성과 대비
 	// Lobby -> Game
 	LG_ROOMINFO,		//방을 생성하고, 입력된 정보를 통해 클라이언트 인원들을 받아라
 	LG_REFAIRROOM,		// (서버하나 다운시) 다른 서버에서있는 정보를 읽어와서 너가 기존게임을 이어가라
+	
 	// Game -> Lobby
 	GL_SERVERAMOUNT, // 서버에 얼만큼 차있는지
 	GL_ENDGAME,		//서버에서 게임이 끝났다. ( == 클라이언트 정보들을 가져가라)
-
-	// Client -> Game
-	CS_MOVEMENT,
-	CS_ATTACK,
 	// Game -> Client
-	SC_MOVEMENT,
-	SC_CHECKATTACK,
+	GC_MOVEMENT,
+	GC_CHECKATTACK
 };
 
 enum Skilltype {
 	NormalSkill,
-	UltimitSkill,
+	UltimitSkill
 };
 
 enum charactertype {
 	Attacker,
 	Sniper,
-	Assister,
-
+	Assister
 };
 
 enum stagetype {
@@ -80,113 +81,58 @@ struct FXYZ {
 
 #pragma pack(push, 1)
 
-// Lobby
 
-
-//---------------Lobby -> GameServer   (Receive Client)----------
-//bind max 4 socket
-struct LGLobbyToGame 
-{
-	int stage;
-	int L2Gport;
-	char L2Gip[20];
-};
-
-
-//--------------Lobby - Client---------------
-struct CSLobbyLogin
+//--------------Client  -->> LobbyServer ---------------
+struct CLLobbyLogin
 {
 	BYTE size;
 	BYTE type;
 	char name[20];
 };
 
-struct CSLobbyLogOut
+
+struct CLLobbyLogOut
 {
 	BYTE size;
 	BYTE type;
 	char name[20];
 };
 
-struct CSClickMatching
+
+struct CLClickMatching
 {
 	BYTE size;
 	BYTE type;
 	BYTE stageNumber;
 };
 
-struct CSEnterRoomCode
+
+struct CLEnterRoomCode
 {
 	BYTE size;
 	BYTE type;
 	char RoomCode[RoomCodeLen];
 };
 
-struct CSCreateRoom
+
+struct CLCreateRoom
 {
 	BYTE size;	
 	BYTE type;
 	BYTE stageNumber;
 };
 
-struct CSStartGame {
-	BYTE size;
-	BYTE type;
-};
 
-struct SCLogInfo {
-	BYTE size;
-	BYTE type;
-	bool exist;
-};
-
-struct SCPuahMatchingQ
-{
-	BYTE size;
-	BYTE type;
-};
-
-struct SCFindRoomCode {
-
-	BYTE size;
-	BYTE type;
-	bool exist;
-};
-
-struct SCRoomCreate
-{
+struct CLStartGame {
 	BYTE size;
 	BYTE type;
 	char RoomCode[RoomCodeLen];
 };
 
-struct GLServerAmount {
-	BYTE size;
-	BYTE type;
-	size_t amount;
-};
-
-// Game
-
-// charcater move
-struct CSMove {
-	BYTE size;
-	BYTE type;
-	MoveData movedata;
-	int play_timer;
-	int roomnumber;
-	int usernumber;
-};
-
-struct SCPlayerMove {
-	BYTE size;
-	BYTE type;
-	int usernumber;
-	MoveData movedtata;
-};
 
 
-struct CSAttack {
+//------------------Client -->> GameServer -----------------
+struct CGAttack {
 	BYTE size;
 	BYTE type;
 	char act_type;
@@ -194,14 +140,87 @@ struct CSAttack {
 	FXYZ position;
 };
 
-struct SCPosition {
+struct CGMove {
 	BYTE size;
 	BYTE type;
-	FXYZ position;
+	MoveData movedata;
+	int play_timer;
+	int roomnumber;
+	int partynumber;
 };
 
 
-struct SCMonster {
+
+
+//-------------- LobbyServer  -->> Client ---------------
+
+struct LCLogInfo {
+	BYTE size;
+	BYTE type;
+	bool exist;
+};
+
+
+struct LCPuahMatchingQ
+{
+	BYTE size;
+	BYTE type;
+};
+
+
+struct LCFindRoomCode {
+
+	BYTE size;
+	BYTE type;
+	bool Fulled;
+	bool exist;
+};
+
+
+struct LCRoomCreate
+{
+	BYTE size;
+	BYTE type;
+	char RoomCode[RoomCodeLen];
+};
+
+
+
+//---------------LobbyServer -> GameServer  --------------
+struct LGLobbyToGame
+{
+	BYTE size;
+	BYTE type;
+	char RoomCode[RoomCodeLen];
+	int L2Gport;
+	char userSet1[ipsize];
+	char userSet2[ipsize];
+	char userSet3[ipsize];
+	char userSet[ipsize];
+};
+
+struct LGRefair {
+
+};
+
+//---------------- GameServer -->> LobbyServer -----------------
+struct GLServerAmount {
+	BYTE size;
+	BYTE type;
+	size_t amount;
+};
+
+
+//---------------- GameServer -->> Clients -----------------
+
+struct GCPlayerMove {
+	BYTE size;
+	BYTE type;
+	int partynumber;
+	MoveData movedtata;
+};
+
+struct GCMonster {
 	BYTE size;
 	BYTE type;
 	FXYZ pos;
@@ -209,6 +228,7 @@ struct SCMonster {
 
 	//send changing model data?
 };
+
 
 
 #pragma pack(pop)

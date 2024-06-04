@@ -27,6 +27,10 @@ class GametoLobby {
 
 	void LobbyConnect();
 
+	void SetGameRoom();
+
+	void RefairOtherServer();
+
 public:
 	GametoLobby(boost::asio::io_context& context) noexcept;
 	

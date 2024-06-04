@@ -11,13 +11,8 @@ void Init_Server()
 	_wsetlocale(LC_ALL, L"korean");
 }
 
-void worker_thread(const int i)
+void worker_thread(boost::asio::io_context& IoContext)
 {
-	boost::asio::io_context IoContext;
-
-	GametoLobby gameconnectlobby(IoContext);
-	GameTCP tcpAcceptor(IoContext, SERVERPORT+i);
-	GameUDP udpAcceptor(IoContext, SERVERPORT+i);
 	IoContext.run();
 }
 
@@ -26,11 +21,14 @@ int main() {
 	
 	std::vector<std::thread> worker_Threads;
 
-
+	boost::asio::io_context IoContext;
+	GametoLobby gameconnectlobby(IoContext);
+	GameTCP tcpAcceptor(IoContext, SERVERPORT + i);
+	GameUDP udpAcceptor(IoContext, SERVERPORT + i);
 
 	Init_Server();
 
-	for (auto i = 0; i < 6; ++i) worker_Threads.emplace_back(worker_thread, i);
+	for (auto i = 0; i < 6; ++i) worker_Threads.emplace_back(worker_thread, IoContext);
 	for (auto& th : worker_Threads) th.join();
 
 }

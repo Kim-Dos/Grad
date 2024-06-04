@@ -1,8 +1,9 @@
 #include "GametoLobby.hpp"
 
 
-extern thread_local concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
+extern concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
+// Handler ----------------------------------------------------
 void GametoLobby:: Connect_Handler(boost::system::error_code ec)
 {
 	if (ec) {
@@ -11,25 +12,22 @@ void GametoLobby:: Connect_Handler(boost::system::error_code ec)
 	}
 
 	// 이후에 일정 시간마다 Data 보내기 및 허락된 인원과의 연결의 중간 지점 설정
-	recv();
 }
-
 
 void GametoLobby::GameLobbyProcess()
 {
 	switch (TCPPacketData[1])
 	{
 	case LG_ROOMINFO:
+		SetGameRoom();
 		break;
 	case LG_REFAIRROOM:
+		RefairOtherServer();
 		break;
 	default:
 		break;
 	}
 }
-
-
-
 
 void GametoLobby::SendPacket(void* packet)
 {
@@ -55,6 +53,29 @@ void GametoLobby::LobbyConnect()
 	lobbySock.async_connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(Lobby_IP), SERVERPORT), Connect_Handler);
 }
 
+void GametoLobby::SetGameRoom()
+{
+	std::string tmp;
+	int add = 2;
+	memcpy(&tmp, TCPPacketData + add, sizeof(RoomCodeLen));
+	add += sizeof(RoomCodeLen);
+	Rooms.emplace(tmp, std::make_shared<GameRoom>());
+	Rooms.visit(tmp, [this](auto& x) {
+		std::string ip;
+		for (int i = 0; i < 4; ++i) {
+			memcpy(&ip, TCPPacketData + add, sizeof(ipsize));
+			x.second->userIPS.emplace_back(&ip);
+			add += sizeof(ipsize);
+		}
+		});
+}
+
+// 아직 안만듬
+void GametoLobby::RefairOtherServer()
+{
+	//아직 안만듬
+}
+
 GametoLobby::GametoLobby(boost::asio::io_context& context) noexcept
 	:  lobbySock(context)
 {
@@ -70,7 +91,7 @@ void GametoLobby::timeSend()
 	GLServerAmount packet;
 	packet.size = sizeof(GLServerAmount);
 	packet.type = GL_SERVERAMOUNT;
-	packet.amount = clients.size();
+	packet.amount = Rooms.size();
 	SendPacket(&packet);
 }	
 
@@ -83,8 +104,6 @@ void GametoLobby::recv() {
 			if (ec) {
 				std::cout << "READ ERR" << std::endl;
 				exit(-1);
-
-
 			}
 			//std::cout  << "recv length" << length << std::endl;
 			int BufferLoad = static_cast<int>(length);

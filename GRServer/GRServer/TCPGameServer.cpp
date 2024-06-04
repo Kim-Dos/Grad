@@ -3,10 +3,10 @@
 // ---------------------
 #include "TCPGameServer.hpp"
 
-thread_local concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
+concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
-GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort) : mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)),
-	mTCPSocket(IOContext) {
+GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort) : mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)), mTCPSocket(IOContext) 
+{
 	ServerAccept();
 }
 
@@ -18,10 +18,15 @@ void GameTCP::ServerAccept()
 			std::cout << " AcceptError" << std::endl;
 			exit(-1);
 		}
-		int roomsession = GetRoomNumber();
-		clients.emplace(roomsession, std::make_shared<TCPGameSession>(std::move(mTCPSocket), roomsession));
-		clients.visit(roomsession, [](auto& x) {
-			x.second->Start();
+		std::string code;
+		mTCPSocket.async_read_some(code, [this,code](boost::system::error_code ec, size_t length) {
+			if (ec) { std::cout << " RoomCodeErr" << std::endl; exit(-1); }
+			Rooms.contains(code);
+			Rooms.visit(code, [this](auto& x) {
+				for (auto ip : x.second->userIPS) {
+					if (ip == mTCPSocket.remote_endpoint().address().to_v4().to_string())
+				}
+			});
 		});
 
 		ServerAccept();
@@ -71,15 +76,12 @@ void TCPGameSession::recv() {
 }
 
 TCPGameSession::TCPGameSession(tcp::socket tcpsock, int roomnumber) noexcept
-	: TCPSocket(std::move(tcpsock)), RoomNumber(roomnumber)
+	: TCPSocket(std::move(tcpsock)), PartyNumber(PartyNumber)
 {
 	prevDataSize = 0, curDataSize = 0;
-	userID = 0;
 	ZeroMemory(TCPrecvBuffer, MAXSIZE);
 	ZeroMemory(TCPPacketData, MAXSIZE);
 	std::cout << "createGameSession\n";
-
-
 
 }
 
@@ -127,4 +129,13 @@ void TCPGameSession::PacketSend(void* packet)
 		});
 }
 
+GameRoom::GameRoom(unsigned char stageNum) : stagenumber(stageNum)
+{
+	playersIP.reserve(4);
+}
 
+bool GameRoom::IsDamaged()
+{
+	//얻은 Number를 가지고 Damaged 판정 하기
+	return false;
+}

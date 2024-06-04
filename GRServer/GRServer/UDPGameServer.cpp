@@ -1,7 +1,7 @@
 #include "UDPGameServer.hpp"
 
 
-extern thread_local concurrent_flat_map<int, std::shared_ptr<TCPGameSession>> clients;
+extern concurrent_flat_map<int, std::shared_ptr<GameRoom>> Rooms;
 thread_local concurrent_flat_map<int, std::shared_ptr<UDPGameSession>> udp_clients;
 
 GameUDP::GameUDP(boost::asio::io_context& IOContext, int port) noexcept
