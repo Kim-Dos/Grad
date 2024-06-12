@@ -110,8 +110,14 @@ private:
 	void ClientPacketProcess() {
 		switch (PacketData[1])
 		{
-		case SC_MOVE:
-			Character_Positioning();
+		case LC_LOG_INFO:
+			break;
+		case LC_PUSH_MATCHING_Q:
+			break;
+		case LC_FIND_ROOM_CODE:
+			break;
+		case LC_ROOM_CREATE:
+			break;
 		default:
 			break;
 		}

@@ -15,7 +15,7 @@ private:
 	std::atomic_int NumOfClients = 0;
 	tcp::socket mTCPSocket;
 	tcp::acceptor mTCPAcceptor;
-	std::vector<std::string> serversIP;
+	std::vector<std::string> IPS;
 	void ServerAccept();
 
 public:

@@ -28,15 +28,6 @@ private:
 	void Packetsend(void* packet);
 
 
-	void ClientPacketProcess() {
-		switch (PacketData[1])
-		{
-		case SC_MOVEMENT:
-		default:
-			break;
-		}
-
-	}
-
+	
 
 };

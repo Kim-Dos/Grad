@@ -1,6 +1,7 @@
 #include <atomic>
 #include <boost\asio.hpp>
 #include <iostream>
+#include "GameRoom.hpp"
 #include "TCPGameServer.hpp"
 #include "Player.h"
 #include "Protocol.h"

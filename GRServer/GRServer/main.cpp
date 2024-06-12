@@ -23,8 +23,8 @@ int main() {
 
 	boost::asio::io_context IoContext;
 	GametoLobby gameconnectlobby(IoContext);
-	GameTCP tcpAcceptor(IoContext, SERVERPORT + i);
-	GameUDP udpAcceptor(IoContext, SERVERPORT + i);
+	GameTCP tcpAcceptor(IoContext, SERVERPORT);
+	GameUDP udpAcceptor(IoContext, SERVERPORT);
 
 	Init_Server();
 

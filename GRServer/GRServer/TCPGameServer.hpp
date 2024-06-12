@@ -2,6 +2,7 @@
 #include <atomic>
 #include <boost\asio.hpp>
 #include <iostream>
+#include "GameRoom.hpp"
 #include "Player.h"
 #include "Protocol.h"
 #pragma once
@@ -15,7 +16,6 @@ class GameTCP {
 public:
 
 	GameTCP(boost::asio::io_context& IOContext, int ServerPort);
-	
 
 private:
 	tcp::socket mTCPSocket;
@@ -48,8 +48,6 @@ public:
 	
 	~TCPGameSession();
 
-	boost::asio::ip::address_v4 getRemoteAdress();
-
 	void Start();
 
 	void GamePacketProcess();
@@ -57,24 +55,6 @@ public:
 	void PacketSend(void* packet);
 
 	inline Player& getPlayer() { return player; }
-
-};
-
-
-class GameRoom 
-	: public std::enable_shared_from_this<GameRoom>
-{
-private:
-	unsigned char stagenumber;
-
-	std::vector<TCPGameSession> userIPS;
-	std::vector<GameObject> otherObj;
-
-
-public:
-	GameRoom(unsigned char stageNum);
-
-	bool IsDamaged();
 
 };
 

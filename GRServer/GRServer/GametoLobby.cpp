@@ -59,15 +59,16 @@ void GametoLobby::SetGameRoom()
 	int add = 2;
 	memcpy(&tmp, TCPPacketData + add, sizeof(RoomCodeLen));
 	add += sizeof(RoomCodeLen);
-	Rooms.emplace(tmp, std::make_shared<GameRoom>());
+	Rooms.emplace(tmp, std::make_shared<GameRoom>(TCPPacketData[add]));
+	add += sizeof(unsigned char);
 	Rooms.visit(tmp, [this](auto& x) {
-		std::string ip;
+		int userNumber;
 		for (int i = 0; i < 4; ++i) {
-			memcpy(&ip, TCPPacketData + add, sizeof(ipsize));
-			x.second->userIPS.emplace_back(&ip);
-			add += sizeof(ipsize);
+			memcpy(&userNumber, TCPPacketData + add, sizeof(int));
+			x.second->setUserIDS(&userNumber);
+			add += sizeof(int);
 		}
-		});
+	});
 }
 
 // ¾ÆÁ÷ ¾È¸¸µë

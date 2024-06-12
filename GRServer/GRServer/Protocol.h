@@ -14,7 +14,6 @@ const int ipsize = 16;
 const int NumOfGameServer = 2;
 
 
-//how to receive data? get a type? or size?
 enum All_Packet_Type {
 	// Client -> Lobby 
 	CL_LOGIN,
@@ -29,9 +28,11 @@ enum All_Packet_Type {
 
 	// Lobby -> Client
 	LC_LOG_INFO, // 로그인과 대비
-	LC_PUSH_MATCHING_Q, // 퀵매칭과 대비
-	LC_FIND_ROOM_CODE, // 룸코드입장과 대비
-	LC_ROOM_CREATE, // 방 생성과 대비
+	LC_PUSH_MATCHING_Q, // 퀵매칭하려고 방 생성 후 오토매칭
+	LC_FIND_ROOM_CODE, // 룸코드보고 입장
+	LC_ROOM_CREATE, // 방 생성
+	LC_COMPLETE_SESSION, //게임서버로 이제 갈 준비해라 및 게임서버 IP보내줘야함
+
 	// Lobby -> Game
 	LG_ROOMINFO,		//방을 생성하고, 입력된 정보를 통해 클라이언트 인원들을 받아라
 	LG_REFAIRROOM,		// (서버하나 다운시) 다른 서버에서있는 정보를 읽어와서 너가 기존게임을 이어가라
@@ -41,7 +42,8 @@ enum All_Packet_Type {
 	GL_ENDGAME,		//서버에서 게임이 끝났다. ( == 클라이언트 정보들을 가져가라)
 	// Game -> Client
 	GC_MOVEMENT,
-	GC_CHECKATTACK
+	GC_CHECKATTACK,
+	GC_LINKGAMESERVER
 };
 
 enum Skilltype {
@@ -129,9 +131,8 @@ struct CLStartGame {
 	char RoomCode[RoomCodeLen];
 };
 
-
-
 //------------------Client -->> GameServer -----------------
+
 struct CGAttack {
 	BYTE size;
 	BYTE type;
@@ -143,12 +144,18 @@ struct CGAttack {
 struct CGMove {
 	BYTE size;
 	BYTE type;
+	char RoomCode[RoomCodeLen];
 	MoveData movedata;
 	int play_timer;
-	int roomnumber;
 	int partynumber;
 };
 
+struct CGLinkInfo {
+	BYTE size;
+	BYTE type;
+	char RoomCode[RoomCodeLen];
+	int userID;
+};
 
 
 
@@ -184,6 +191,13 @@ struct LCRoomCreate
 	char RoomCode[RoomCodeLen];
 };
 
+struct LCCompleteGameSession {
+	BYTE size;
+	BYTE type;
+	int userNumber;
+	char GameServerIP[ipsize];
+	int ServerPort;
+};
 
 
 //---------------LobbyServer -> GameServer  --------------
@@ -192,11 +206,11 @@ struct LGLobbyToGame
 	BYTE size;
 	BYTE type;
 	char RoomCode[RoomCodeLen];
-	int L2Gport;
-	char userSet1[ipsize];
-	char userSet2[ipsize];
-	char userSet3[ipsize];
-	char userSet[ipsize];
+	unsigned char stage_number;
+	int usernumber1;
+	int usernumber2;
+	int usernumber3;
+	int usernumber4;
 };
 
 struct LGRefair {

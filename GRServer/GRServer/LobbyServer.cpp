@@ -141,7 +141,6 @@ void LobbyClientSession::MakeRoom(bool flag, unsigned char stagenum)
 		p.type = LC_ROOM_CREATE;
 		memcpy(&p.RoomCode, &RoomCode, sizeof(RoomCodeLen));
 		PacketSend(&p);
-		
 	}
 }
 
