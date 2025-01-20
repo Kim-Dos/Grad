@@ -18,7 +18,7 @@ void GameTCP::ServerAccept()
 			std::cout << " AcceptError" << std::endl;
 			exit(-1);
 		}
-		CGLinkInfo p;
+		/*CGLinkInfo p;
 		mTCPSocket.async_read_some(p, [this,p](boost::system::error_code ec, size_t length) {
 			if (ec) { std::cout << " RoomCodeErr" << std::endl; exit(-1); }
 			std::string code;
@@ -31,7 +31,7 @@ void GameTCP::ServerAccept()
 					}
 				}
 			});
-		});
+		});*/
 
 		ServerAccept();
 	});

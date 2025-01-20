@@ -20,8 +20,8 @@ private:
 	unsigned char stagenumber;
 
 	std::vector<int> userIDS;
-	std::vector<TCPGameSession> userSessionS;
-	std::vector<GameObject> otherObj;
+	std::vector<TCPGameSession*> userSessionz;  //최대 4명? 8명?
+	std::vector<GameObject*> otherObj; // 오브젝트는 인당 200개, 깔려있는 
 
 
 public:
