@@ -34,12 +34,12 @@ private:
 
 	tcp::socket TCPSocket;
 	int prevDataSize, curDataSize;
+
+	char PartyRoomCode[RoomCodeLen];
 	int PartyNumber;
-	unsigned char TCPrecvBuffer[MAXSIZE]; 
-	unsigned char TCPPacketData[MAXSIZE];
-
-	Player player;
-
+	unsigned char TCPrecvBuffer[MAXSIZE]; // 수신버퍼에서 끌어오는 버퍼
+	unsigned char TCPPacketData[MAXSIZE]; // 프로세스에 사용될 패킷 데이터
+	
 	void recv();
 
 public:
@@ -54,7 +54,7 @@ public:
 
 	void PacketSend(void* packet);
 
-	inline Player& getPlayer() { return player; }
+	//inline Player& getPlayer() { return player; }
 
 };
 

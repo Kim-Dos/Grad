@@ -37,7 +37,6 @@ private:
 	unsigned char UDPrecvBuffer[MAXSIZE];
 	unsigned char UDPPacketData[MAXSIZE];
 	udp::endpoint remote;
-	Player player;
 
 
 	void recv();

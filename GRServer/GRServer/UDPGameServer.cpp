@@ -31,9 +31,7 @@ UDPGameSession::UDPGameSession(udp::socket udpsock) noexcept
 	userID = 0;
 	curDataSize = 0;
 	prevDataSize = 0;
-	player.SetDefault();
-	player.SetPosition(1, 1, 1);
-	std::cout << player.GetPosX() << player.GetPosY() << player.GetPosZ() << std::endl;
+
 
 }
 
@@ -57,11 +55,7 @@ void UDPGameSession::UDPPacketProcess()
 
 	switch (UDPPacketData[1])
 	{
-	case CS_MOVEMENT:
-		moveCharacter();
-		break;
-	case CS_ATTACK:
-		generalAttack();
+
 	default:
 		break;
 	}
@@ -71,15 +65,9 @@ void UDPGameSession::moveCharacter()
 {
 	FXYZ position;
 	memcpy(&position, UDPPacketData + 2, sizeof(FXYZ));
-	player.SetPosition(position);  
-
-	std::cout << player.GetPosX() << player.GetPosY() << player.GetPosZ() << std::endl;
-
-	clients.cvisit_all([](auto x) { if (x->second.getRemoteAdress() != remote.adress()) {
 
 
-	}
-		});
+
 
 	//PacketSend(&packet);
 }

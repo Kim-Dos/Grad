@@ -22,7 +22,7 @@ int main() {
 	std::vector<std::thread> worker_Threads;
 
 	boost::asio::io_context IoContext;
-	GametoLobby gameconnectlobby(IoContext);
+	//GametoLobby gameconnectlobby(IoContext);
 	GameTCP tcpAcceptor(IoContext, SERVERPORT);
 	GameUDP udpAcceptor(IoContext, SERVERPORT);
 

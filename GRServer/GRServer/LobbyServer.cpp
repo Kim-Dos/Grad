@@ -137,7 +137,6 @@ void LobbyClientSession::MakeRoom(bool flag, unsigned char stagenum)
 
 	if (flag == false) {
 		LCRoomCreate p;
-		p.size = sizeof(LCRoomCreate);
 		p.type = LC_ROOM_CREATE;
 		memcpy(&p.RoomCode, &RoomCode, sizeof(RoomCodeLen));
 		PacketSend(&p);
@@ -150,7 +149,6 @@ void LobbyClientSession::EnterLobbyRoom()
 	memcpy(&code, PacketData + 2, sizeof(RoomCodeLen));
 
 	LCFindRoomCode p;
-	p.size = sizeof(LCFindRoomCode);
 	p.type = LC_FIND_ROOM_CODE;
 	p.exist = MatchingRoom.contains(code);
 	if (p.exist) {
