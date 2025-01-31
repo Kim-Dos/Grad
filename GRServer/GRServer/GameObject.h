@@ -3,16 +3,13 @@
 #include "MathHelper.h"
 #include "Protocol.h"
 
-
-
-
-class GameObject
+class Object 
 {
 public:
-	
-	GameObject() {}
 
-	~GameObject() {}
+	Object();
+
+	~Object() {}
 
 
 	//-----------------------------------------------------------
@@ -25,6 +22,35 @@ public:
 	inline float GetPosX() const { return mPos.x; }
 	inline float GetPosY() const { return mPos.y; }
 	inline float GetPosZ() const { return mPos.z; }
+
+	//-----------------------------------------------------------
+	// Setter
+	//-----------------------------------------------------------
+	void SetPosition(float x, float y, float z);
+	void SetPosition(FXYZ position);
+
+
+	void SetModelname(const std::string& modelname);
+
+protected:
+	std::string mName; // Model Name
+
+	FXYZ mPos;
+};
+
+
+class GameActor : public Object
+{
+public:
+	
+	GameActor();
+
+	~GameActor() {}
+
+
+	//-----------------------------------------------------------
+	// Getter
+	//-----------------------------------------------------------
 	
 	inline FXYZ GetDir() const { return mDir; }
 	inline FXYZ GetAcc() const { return mAcc; }
@@ -40,8 +66,7 @@ public:
 	//-----------------------------------------------------------
 	// Setter
 	//-----------------------------------------------------------
-	void SetPosition(float x, float y, float z);
-	void SetPosition(FXYZ position);
+
 	void SetAcceleration(float x, float y, float z);
 	void SetAcceleration(FXYZ Acceleration);
 	void SetVelocity(float x, float y, float z);
@@ -51,22 +76,11 @@ public:
 
 	void SetDefault();
 
-	void SetModel(const std::string& model);
-
-
-
-
-
-
-
 protected:
-	std::string mName;
+	int userNumber; // User Number 1 or 2 ( 0 is None )
 
-	FXYZ mPos;
 	FXYZ mVel;
 	FXYZ mAcc;
 	FXYZ mDir;
 
-
 };
-

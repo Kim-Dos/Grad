@@ -4,6 +4,7 @@
 typedef unsigned char BYTE;
 
 constexpr unsigned int SERVERPORT = 4000;
+constexpr unsigned int LOBBYPORT = 4100;
 
 //const char* Lobby_IP = "127.0.0.1";
 

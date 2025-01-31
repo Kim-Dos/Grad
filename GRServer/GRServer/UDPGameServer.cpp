@@ -1,17 +1,17 @@
 #include "UDPGameServer.hpp"
 
 
-extern concurrent_flat_map<int, std::shared_ptr<GameRoom>> Rooms;
-thread_local concurrent_flat_map<int, std::shared_ptr<UDPGameSession>> udp_clients;
+extern concurrent_flat_map<std::string , std::shared_ptr<GameRoom>> Rooms;
+
 
 GameUDP::GameUDP(boost::asio::io_context& IOContext, int port) noexcept
 	: mUDPSocket(IOContext, udp::endpoint(udp::v4(),port))
 {
-	int roomsession = GetRoomNumber();
-	udp_clients.emplace(roomsession, std::make_shared<UDPGameSession>(std::move(mUDPSocket)));
-	udp_clients.visit(roomsession, [](auto& x) {
-		x.second->Start();
-	});
+	//Rooms.visit ===>> 여기서 룸 코드를 기반으로 움직여야함. 그러면 생성자에서 행동할 수 없음.
+	//Rooms.visit("1", [this](auto& x) {
+	//	x.second->setUDPSocket(std::move(mUDPSocket));
+	//});
+
 }
 
 //void GameUDP::Set_remote_endpoint(std::string str, int port)
@@ -20,19 +20,30 @@ GameUDP::GameUDP(boost::asio::io_context& IOContext, int port) noexcept
 //		x->remote_endpoint(boost::asio::ip::address::from_string(str), port)) };
 //}
 
-
-
-UDPGameSession::UDPGameSession(udp::socket udpsock) noexcept
-	: UDPSocket(std::move(udpsock))
+UDPGameSession::UDPGameSession()
 {
-	RoomNumber = 0;
+	//RoomNumber = 0;
 	ZeroMemory(UDPPacketData, MAXSIZE);
 	ZeroMemory(UDPrecvBuffer, MAXSIZE);
-	userID = 0;
+	//userID = 0;
 	curDataSize = 0;
 	prevDataSize = 0;
 
+	UDPSocket.open(udp::v4());
+	UDPSocket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+}
 
+UDPGameSession::UDPGameSession(udp::socket udpsock) : UDPSocket(std::move(udpsock))
+{
+	//RoomNumber = 0;
+	ZeroMemory(UDPPacketData, MAXSIZE);
+	ZeroMemory(UDPrecvBuffer, MAXSIZE);
+	//userID = 0;
+	curDataSize = 0;
+	prevDataSize = 0;
+
+	UDPSocket.open(udp::v4());
+	UDPSocket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
 }
 
 UDPGameSession::~UDPGameSession()
@@ -49,32 +60,29 @@ void UDPGameSession::Start()
 	recv();
 }
 
-void UDPGameSession::UDPPacketProcess()
-{
+//void UDPGameSession::UDPPacketProcess()
+//{
+//
+//
+//	switch (UDPPacketData[1])
+//	{
+//
+//	default:
+//		break;
+//	}
+//}
 
-
-	switch (UDPPacketData[1])
-	{
-
-	default:
-		break;
-	}
-}
-
-void UDPGameSession::moveCharacter()
-{
-	FXYZ position;
-	memcpy(&position, UDPPacketData + 2, sizeof(FXYZ));
-
-
-
-
-	//PacketSend(&packet);
-}
-
-void UDPGameSession::generalAttack()
-{
-}
+//void UDPGameSession::moveCharacter()
+//{
+//	FXYZ position;
+//	memcpy(&position, UDPPacketData + 2, sizeof(FXYZ));
+//
+//	//PacketSend(&packet);
+//}
+//
+//void UDPGameSession::generalAttack()
+//{
+//}
 
 void UDPGameSession::recv()
 {
@@ -99,7 +107,7 @@ void UDPGameSession::recv()
 
 				if (build <= BufferLoad) {
 					memcpy(UDPPacketData + prevDataSize, PacketPoint, build);
-					UDPPacketProcess();
+					//UDPPacketProcess();
 					curDataSize = 0;
 					prevDataSize = 0;
 					BufferLoad -= build;
@@ -116,6 +124,8 @@ void UDPGameSession::recv()
 		});
 
 }
+
+
 
 void UDPGameSession::PacketSend(void* packet)
 {
@@ -136,3 +146,9 @@ void UDPGameSession::PacketSend(void* packet)
 			}
 		});
 }
+
+void UDPGameSession::JoinGroup(const boost::asio::ip::address& multiaddress)
+{
+	UDPSocket.set_option(boost::asio::ip::multicast::join_group(multiaddress));
+}
+

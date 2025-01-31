@@ -36,7 +36,6 @@ private:
 	int prevDataSize, curDataSize;
 
 	char PartyRoomCode[RoomCodeLen];
-	int PartyNumber;
 	unsigned char TCPrecvBuffer[MAXSIZE]; // 수신버퍼에서 끌어오는 버퍼
 	unsigned char TCPPacketData[MAXSIZE]; // 프로세스에 사용될 패킷 데이터
 	
@@ -44,7 +43,7 @@ private:
 
 public:
 
-	TCPGameSession(tcp::socket tcpsock, int roomnumber) noexcept;
+	TCPGameSession(tcp::socket tcpsock) noexcept;
 	
 	~TCPGameSession();
 
@@ -53,6 +52,8 @@ public:
 	void GamePacketProcess();
 
 	void PacketSend(void* packet);
+
+	inline const tcp::socket& getSocket() { return TCPSocket; }
 
 	//inline Player& getPlayer() { return player; }
 

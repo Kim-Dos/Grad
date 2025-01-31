@@ -32,7 +32,7 @@ void GameTCP::ServerAccept()
 				}
 			});
 		});*/
-
+		
 		ServerAccept();
 	});
 }
@@ -79,8 +79,8 @@ void TCPGameSession::recv() {
 		});
 }
 
-TCPGameSession::TCPGameSession(tcp::socket tcpsock, int roomnumber) noexcept
-	: TCPSocket(std::move(tcpsock)), PartyNumber(PartyNumber)
+TCPGameSession::TCPGameSession(tcp::socket tcpsock) noexcept
+	: TCPSocket(std::move(tcpsock))
 {
 	prevDataSize = 0, curDataSize = 0;
 	ZeroMemory(TCPrecvBuffer, MAXSIZE);
@@ -97,8 +97,6 @@ void TCPGameSession::Start()
 {
 	recv();
 	std::cout << "START\n";
-
-
 }
 
 void TCPGameSession::GamePacketProcess()

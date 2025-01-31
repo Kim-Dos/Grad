@@ -3,7 +3,7 @@
 #include "GametoLobby.hpp"
 #include "Player.h"
 
-
+concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
 
 void Init_Server()

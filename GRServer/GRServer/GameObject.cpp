@@ -1,63 +1,81 @@
 #include "GameObject.h"
 
-void GameObject::SetPosition(float x, float y, float z)
+Object::Object() {
+
+	mPos = { 0,0,0 };
+}
+
+void Object::SetModelname(const std::string& modelname)
+{
+	mName = modelname;
+}
+
+void Object::SetPosition(float x, float y, float z)
 {
 	mPos.x = x;
 	mPos.y = y;
 	mPos.z = z;
 }
 
-void GameObject::SetPosition(FXYZ position)
+void Object::SetPosition(FXYZ position)
 {
 	mPos = position;
 }
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 
-void GameObject::SetAcceleration(float x, float y, float z)
+
+GameActor::GameActor() : Object()
+{
+	userNumber = 0;
+	mVel = { 0,0,0 };
+	mAcc = { 0,0,0 };
+	mDir = { 0,0,0 };
+}
+
+void GameActor::SetAcceleration(float x, float y, float z)
 {
 	mAcc.x = x;
 	mAcc.y = y;
 	mAcc.z = z;
 }
 
-void GameObject::SetAcceleration(FXYZ Acceleration)
+void GameActor::SetAcceleration(FXYZ Acceleration)
 {
 	mAcc = Acceleration;
 }
 
-void GameObject::SetVelocity(float x, float y, float z)
+void GameActor::SetVelocity(float x, float y, float z)
 {
 	mVel.x = x;
 	mVel.y = y;
 	mVel.z = z;
 }
 
-void GameObject::SetVelocity(FXYZ velocity)
+void GameActor::SetVelocity(FXYZ velocity)
 {
 	mVel = velocity;
 }
 
-void GameObject::SetDirection(float x, float y, float z)
+void GameActor::SetDirection(float x, float y, float z)
 {
 	mDir.x = x;
 	mDir.y = y;
 	mDir.z = z;
 }
 
-void GameObject::SetDirection(FXYZ direction)
+void GameActor::SetDirection(FXYZ direction)
 {
 	mDir = direction;
 }
 
-void GameObject::SetModel(const std::string& model)
-{
-	mName = model;
-}
 
-void GameObject::SetDefault()
+
+void GameActor::SetDefault()
 {
-	mPos = { 0,0,0 };
 	mVel = { 0,0,0 };
 	mAcc = { 0,0,0 };
 	mDir = { 0,0,0 };
-	mName = "None";
 }
