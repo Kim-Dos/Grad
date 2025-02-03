@@ -89,28 +89,30 @@ struct MoveData {
 //--------------Client  -->> LobbyServer ---------------
 struct CLLobbyLogin
 {
-	Packet_Type type;
 	BYTE size;
+	Packet_Type type;
 	char name[20];
 };
 
 
 struct CLLobbyLogOut
 {
-	Packet_Type type;
 	BYTE size;
+	Packet_Type type;
 	char name[20];
 };
 
 
 struct CLClickQMatching
 {
+	BYTE size;
 	Packet_Type type;
 };
 
 
 struct CLEnterRoomCode
 {
+	BYTE size;
 	Packet_Type type; 
 	char RoomCode[RoomCodeLen];
 };
@@ -118,20 +120,23 @@ struct CLEnterRoomCode
 
 struct CLCreateRoom
 {
+	BYTE size;
 	Packet_Type type; 
 	BYTE selected_map;
 };
 
 
 struct CLStartGame {
+	BYTE size;
 	Packet_Type type;
 	char RoomCode[RoomCodeLen];
 };
 
 //------------------Client -->> GameServer -----------------
 
-// 오브젝트 생성 ( 캐릭터 or 건물)
+// 오브젝트 생성 ( 캐릭터 or 건물 )
 struct CGMaking {
+	BYTE size;
 	Packet_Type type;
 	ObjType Obj;
 	FXYZ position;
@@ -139,6 +144,7 @@ struct CGMaking {
 
 // 공격 및 이동 ( 1인칭일 때만 활성화 )
 struct CGFPerspectAction {
+	BYTE size;
 	Packet_Type type;
 	char act_type;
 	FXYZ LookVector;
@@ -147,6 +153,7 @@ struct CGFPerspectAction {
 
 // 오브젝트 이동 (피킹된 객체들만)
 struct CGPickingMove {
+	BYTE size;
 	Packet_Type type;
 	BYTE pickingsize;
 	int playerNumber;
@@ -157,8 +164,8 @@ struct CGPickingMove {
 
 // 처음 입장, 룸 코드를 통해 게임서버로 연결
 struct CGLinkInfo {
-	Packet_Type type;
 	BYTE size;
+	Packet_Type type;
 	char RoomCode[RoomCodeLen];
 	int userID;
 };
@@ -169,6 +176,7 @@ struct CGLinkInfo {
 
 // 로그인 및 검색결과 반환
 struct LCLogInfo {
+	BYTE size;
 	Packet_Type type;
 	bool exist;
 };
@@ -176,6 +184,7 @@ struct LCLogInfo {
 // 퀵매칭으로 진입함 (방 생성 후 오토매칭)
 struct LCPushMatchingQ
 {
+	BYTE size;
 	Packet_Type type;
 	bool done;
 };
@@ -183,6 +192,7 @@ struct LCPushMatchingQ
 // 룸코드를 보고 입장가능 확인 반환
 struct LCFindRoomCode 
 {
+	BYTE size;
 	Packet_Type type;
 	bool Fulled;
 	bool exist;
@@ -191,14 +201,15 @@ struct LCFindRoomCode
 // 방 생성후 반환
 struct LCRoomCreate
 {
+	BYTE size;
 	Packet_Type type;
 	char RoomCode[RoomCodeLen];
 };
 
 // 게임서버로 이제 갈 준비해라 및 게임서버 IP보내줘야함
 struct LCStartGameServer {
-	Packet_Type type;
 	BYTE size;
+	Packet_Type type;
 	int userNumber;
 	char GameServerIP[ipsize];
 	int ServerPort;
@@ -208,17 +219,15 @@ struct LCStartGameServer {
 //---------------LobbyServer -> GameServer  --------------
 struct LGLobbyToGame
 {
-	Packet_Type type;
 	BYTE size;
+	Packet_Type type;
 	char RoomCode[RoomCodeLen];
 	int usernumber1;
 	int usernumber2;
-	int usernumber3;
-	int usernumber4;
 };
 
 struct LGRefair {
-
+	BYTE size;
 };
 
 //---------------- GameServer -->> LobbyServer -----------------
@@ -234,6 +243,7 @@ struct GLServerAmount {
 
 // 다른유저의 데이터, (다른 유저가 피킹한 객체들의 움직임 또는 생성한 건물들)
 struct GCReadytoStart {
+	BYTE size;
 	Packet_Type type;
 	bool MapReady;
 	bool AllPlayerReady;
@@ -242,6 +252,7 @@ struct GCReadytoStart {
 // 일정거리에 상대편 객체가 와서, 공격할때.
 // 공격 command가 아닐때, 공격당해서 같이 공격 command로 바뀔때.
 struct GCAttack {
+	BYTE size;
 	Packet_Type type;
 	char objNumber;
 	int enemy_playerNumber;
@@ -250,14 +261,12 @@ struct GCAttack {
 
 // 다른유저의 데이터, (다른 유저가 피킹한 객체들의 움직임 또는 생성한 건물들)
 struct GCPickingMove {
+	BYTE size;
 	Packet_Type type;
 	BYTE pickingsize;
 	int playerNumber;
 	char act_command;
 	MoveData move_data[12];
 };
-
-
-
 
 #pragma pack(pop)

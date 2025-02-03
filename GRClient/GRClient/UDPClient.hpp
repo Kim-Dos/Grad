@@ -3,7 +3,6 @@
 #include <iostream>
 #include <conio.h>
 #include "..\..\..\Grad\GRServer\GRServer\Protocol.h"
-#include "../../../ppo/ppo/GameObject.h"
 #include "../../../ppo/ppo/Player.h"
 using boost::asio::ip::udp;
 
@@ -14,7 +13,9 @@ public:
 
 	UDPC(boost::asio::io_context& service) noexcept;
 
-	void SendPosition(Player& player);
+	void SendPacket(void* Packet);
+
+	void recv(unsigned char* arr);
 
 private:
 	udp::socket mUDPSocket;
@@ -23,11 +24,8 @@ private:
 	int prevDataSize;
 	int curDataSize;
 
-	void recv();
+	void recv(unsigned char* arr);
 
-	void Packetsend(void* packet);
-
-
-	
+	void Packetsend(void* packet, size_t length);
 
 };

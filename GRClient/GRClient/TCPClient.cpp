@@ -161,14 +161,7 @@ private:
 			break;
 		}
 
-		CSmove pack;
-		pack.size = sizeof(CSmove);
-		pack.type = CS_MOVE;
-		pack.position = character.GetPos();
-		pack.roomnumber = NULL;
-		pack.usernumber = NULL;
-
-		Packetsend(&pack);
+		//Packetsend(&pack);
 
 	}
 

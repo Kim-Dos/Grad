@@ -15,45 +15,32 @@ UDPC::UDPC(boost::asio::io_context& service) noexcept
 	});
 
 }
-class Player;
-
-void UDPC::SendPosition(Player& pl)
+void UDPC::SendPacket(void* Packet)
 {
-	CSMove packet;
-	ZeroMemory(&packet, sizeof(CSMove));
-	packet.size = sizeof(CSMove);
-	packet.type = SC_MOVEMENT;
-	XMFLOAT3 temp = pl.GetVelocity();
-	memcpy(&packet.velocity, &temp, sizeof(FXYZ));
-	temp = pl.GetLook();
-	memcpy(&packet.look, &temp, sizeof(FXYZ));
-	temp = pl.GetPosition();
-	memcpy(&packet.position, &temp, sizeof(FXYZ));
-
-	Packetsend(&packet);
+	size_t length = reinterpret_cast<unsigned char*>(Packet)[0];
+	Packetsend(Packet, length);
 }
 
+class Player;
 
-void UDPC::Packetsend(void* packet) {
+
+void UDPC::Packetsend(void* packet, size_t length) {
 	std::cout << "sendpack\n";
-	int packetsize = reinterpret_cast<unsigned char*>(packet)[0];
-	unsigned char* buffer = new unsigned char[packetsize];
-	memcpy(buffer, packet, packetsize);
-	mUDPSocket.async_send(boost::asio::buffer(buffer, (size_t)packetsize),
-		[this, buffer, packetsize](boost::system::error_code ec, std::size_t bytes_transferred)
+	
+	mUDPSocket.async_send(boost::asio::buffer(packet, (size_t)length),
+		[this, packet, length](boost::system::error_code ec, std::size_t bytes_transferred)
 		{
 			if (!ec)
 			{
-				if (packetsize != bytes_transferred) {
+				if (length != bytes_transferred) {
 					std::cout << "ERR - Bytes_transferred\n";
 				}
-				delete buffer;
 			}
 		});
 
 }
 
-void UDPC::recv() 
+void UDPC::recv(unsigned char* arr)
 {
 	mUDPSocket.async_receive(boost::asio::buffer(recvBuffer),
 		[this](boost::system::error_code ec, std::size_t length)
@@ -71,25 +58,6 @@ void UDPC::recv()
 					if (curDataSize > 200) { std::cout << "BufferErr\n" << std::endl; exit(-1); } //find a error packet
 				}
 				int build = curDataSize - prevDataSize;
-
-
-				if (build <= BufferLoad) {
-					memcpy(PacketData + prevDataSize, PacketPoint, build);
-
-					ClientPacketProcess();
-					curDataSize = 0;
-					prevDataSize = 0;
-					BufferLoad -= build;
-					PacketPoint += build;
-				}
-				else {
-					memcpy(PacketData + prevDataSize, PacketPoint, build);
-					prevDataSize += build;
-					build = 0;
-					PacketPoint += BufferLoad;
-				}
 			}
-			recv();
-
 		});
 }
