@@ -1,6 +1,6 @@
 #include "UDPClient.hpp"
 
-boost::asio::ip::udp::endpoint UDPGameIP(boost::asio::ip::address::from_string("127.0.0.1"), 4000);
+boost::asio::ip::udp::endpoint UDPGameIP(boost::asio::ip::address::from_string("127.0.0.1"), SERVERPORT);
 
 UDPC::UDPC(boost::asio::io_context& service) noexcept
 	: mUDPSocket(service)

@@ -55,8 +55,6 @@ public:
 
 	inline const tcp::socket& getSocket() { return TCPSocket; }
 
-	//inline Player& getPlayer() { return player; }
-
 };
 
 
