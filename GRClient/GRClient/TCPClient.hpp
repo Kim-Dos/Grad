@@ -10,12 +10,11 @@ class TCPC
 	//: public std::enable_shared_from_this<TCPC>
 {
 public:
-	TCPC(boost::asio::io_context& service);
+	TCPC(boost::asio::io_context& service) noexcept;
+	~TCPC() { std::cout << "TCPC out\n"; }
+	
+	void recv(unsigned char (&arr)[1024]);
 
-	void keyTrace() {
-
-		traceKey();
-	}
 
 private:
 	tcp::socket msocket;
@@ -23,9 +22,6 @@ private:
 	unsigned char PacketData[1024];
 	int prevDataSize;
 	int curDataSize;
-
-
-	void recv();
 
 	void Packetsend(void* packet);
 

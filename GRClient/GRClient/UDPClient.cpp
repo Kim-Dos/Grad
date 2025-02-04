@@ -1,4 +1,5 @@
 #include "UDPClient.hpp"
+#include <iostream>
 
 boost::asio::ip::udp::endpoint UDPGameIP(boost::asio::ip::address::from_string("127.0.0.1"), SERVERPORT);
 
@@ -37,12 +38,11 @@ void UDPC::Packetsend(void* packet, size_t length) {
 				}
 			}
 		});
-
 }
 
-void UDPC::recv(unsigned char* arr)
+void UDPC::recv(unsigned char (&arr)[1024])
 {
-	mUDPSocket.async_receive(boost::asio::buffer(recvBuffer),
+	mUDPSocket.async_receive(boost::asio::buffer(arr),
 		[this](boost::system::error_code ec, std::size_t length)
 		{
 			if (ec) {

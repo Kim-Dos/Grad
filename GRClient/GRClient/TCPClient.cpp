@@ -7,10 +7,9 @@ int port = 4000;
 
 boost::asio::ip::tcp::endpoint LobbyIP(boost::asio::ip::address::from_string(ip), port);
 boost::asio::ip::tcp::endpoint TCPGameIP;
-boost::asio::ip::udp::endpoint UDPGameIP(boost::asio::ip::address::from_string(ip), port);
 
 
-TCPC::TCPC(boost::asio::io_context& service)
+TCPC::TCPC(boost::asio::io_context& service) noexcept
 	: msocket(service)
 {
 	prevDataSize = 0, curDataSize = 0;
@@ -20,22 +19,12 @@ TCPC::TCPC(boost::asio::io_context& service)
 	msocket.async_connect(LobbyIP, [](boost::system::error_code ec) {
 		if (ec) { std::cout << ec.what() << std::endl;  exit(-1); }
 	});
-
-
-	recv();
 }
 
-void TCPC::keyTrace() {
-
-	traceKey();
-}
-
-
-
-void TCPC::recv() {
-	//auto self(shared_from_this());
-	msocket.async_read_some(boost::asio::buffer(recvBuffer),
-		[this](boost::system::error_code ec, std::size_t length)
+void TCPC::recv(unsigned char (&arr)[1024]) {
+	
+	msocket.async_read_some(boost::asio::buffer(arr),
+		[this, &arr](boost::system::error_code ec, std::size_t length)
 		{
 			if (ec) {
 				std::cout << ec.what() << std::endl;
@@ -68,7 +57,7 @@ void TCPC::recv() {
 					PacketPoint += BufferLoad;
 				}
 			}
-			recv();
+			recv(arr);
 		});
 
 }

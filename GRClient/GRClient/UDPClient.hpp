@@ -1,9 +1,8 @@
+#pragma once
 
-#include <boost\asio.hpp>
 #include <iostream>
-#include <conio.h>
+#include <boost\asio.hpp>
 #include "..\..\..\Grad\GRServer\GRServer\Protocol.h"
-#include "../../../ppo/ppo/Player.h"
 
 using boost::asio::ip::udp;
 
@@ -14,9 +13,10 @@ public:
 
 	UDPC(boost::asio::io_context& service) noexcept;
 
+	~UDPC() { std::cout << "UDPC out\n"; }
 	void SendPacket(void* Packet);
 
-	void recv(unsigned char* arr);
+	void recv(unsigned char (&arr) [1024]);
 
 private:
 	udp::socket mUDPSocket;
@@ -24,8 +24,6 @@ private:
 	unsigned char PacketData[1024];
 	int prevDataSize;
 	int curDataSize;
-
-	void recv(unsigned char* arr);
 
 	void Packetsend(void* packet, size_t length);
 
