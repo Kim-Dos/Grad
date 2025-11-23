@@ -20,8 +20,20 @@ GameUDP::GameUDP(boost::asio::io_context& IOContext, int port) noexcept
 //		x->remote_endpoint(boost::asio::ip::address::from_string(str), port)) };
 //}
 
-UDPGameSession::UDPGameSession()
-{
+//UDPGameSession::UDPGameSession(){
+//	//RoomNumber = 0;
+//	ZeroMemory(UDPPacketData, MAXSIZE);
+//	ZeroMemory(UDPrecvBuffer, MAXSIZE);
+//	//userID = 0;
+//	curDataSize = 0;
+//	prevDataSize = 0;
+//
+//	UDPSocket.open(udp::v4());
+//	UDPSocket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+//}
+
+UDPGameSession::UDPGameSession(udp::socket udpsock) noexcept : UDPSocket(std::move(udpsock))
+{ 
 	//RoomNumber = 0;
 	ZeroMemory(UDPPacketData, MAXSIZE);
 	ZeroMemory(UDPrecvBuffer, MAXSIZE);
@@ -31,20 +43,7 @@ UDPGameSession::UDPGameSession()
 
 	UDPSocket.open(udp::v4());
 	UDPSocket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-}
-
-UDPGameSession::UDPGameSession(udp::socket udpsock) : UDPSocket(std::move(udpsock))
-{
-	//RoomNumber = 0;
-	ZeroMemory(UDPPacketData, MAXSIZE);
-	ZeroMemory(UDPrecvBuffer, MAXSIZE);
-	//userID = 0;
-	curDataSize = 0;
-	prevDataSize = 0;
-
-	UDPSocket.open(udp::v4());
-	UDPSocket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-}
+} 
 
 UDPGameSession::~UDPGameSession()
 {

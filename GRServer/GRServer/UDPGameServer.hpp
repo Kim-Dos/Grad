@@ -37,9 +37,9 @@ private:
 
 public:
 	
-	UDPGameSession();
+	//UDPGameSession();
 
-	UDPGameSession(udp::socket udpsock);
+	UDPGameSession(udp::socket udpsock) noexcept;
 
 	~UDPGameSession();
 

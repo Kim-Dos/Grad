@@ -76,9 +76,9 @@ struct ButtonPack {
 };
 
 struct MoveData {
-	int objnumber;
-	FXYZ position;
-	FXYZ destination;
+	unsigned char objnumber;
+	float pos_x, pos_y;
+	float dset_x, dest_z;
 };
 
 
@@ -139,7 +139,8 @@ struct CGMaking {
 	BYTE size;
 	Packet_Type type;
 	ObjType Obj;
-	FXYZ position;
+	float pos_x;
+	float pos_y;
 };
 
 // 공격 및 이동 ( 1인칭일 때만 활성화 )
