@@ -2,13 +2,13 @@
 #include <atomic>
 #include <boost\asio.hpp>
 #include <iostream>
-#include "GameRoom.hpp"
-#include "Player.h"
 #include "Protocol.h"
 #pragma once
 
 using boost::concurrent_flat_map;
 using boost::asio::ip::tcp;
+
+class GameRoom;
 
 //TCP Acceptor
 class GameTCP {
@@ -36,15 +36,15 @@ private:
 	int prevDataSize, curDataSize;
 
 	char PartyRoomCode[RoomCodeLen];
-	unsigned char TCPrecvBuffer[MAXSIZE]; // 수신버퍼에서 끌어오는 버퍼
+	unsigned char TCPrecvBuffer[MAXSIZE]; // 수신버퍼에서 꺼어오는 버퍼
 	unsigned char TCPPacketData[MAXSIZE]; // 프로세스에 사용될 패킷 데이터
-	
+
 	void recv();
 
 public:
 
 	TCPGameSession(tcp::socket tcpsock) noexcept;
-	
+
 	~TCPGameSession();
 
 	void Start();
@@ -56,6 +56,3 @@ public:
 	inline const tcp::socket& getSocket() { return TCPSocket; }
 
 };
-
-
-

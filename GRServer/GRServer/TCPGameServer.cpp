@@ -5,7 +5,7 @@
 
 extern concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
-GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort) : mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)), mTCPSocket(IOContext) 
+GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort) : mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)), mTCPSocket(IOContext)
 {
 	ServerAccept();
 }
@@ -18,23 +18,16 @@ void GameTCP::ServerAccept()
 			std::cout << " AcceptError" << std::endl;
 			exit(-1);
 		}
-		/*CGLinkInfo p;
-		mTCPSocket.async_read_some(p, [this,p](boost::system::error_code ec, size_t length) {
-			if (ec) { std::cout << " RoomCodeErr" << std::endl; exit(-1); }
-			std::string code;
-			memcpy(&code, p.RoomCode, sizeof(p.RoomCode));
-			Rooms.contains(code);
-			Rooms.visit(code, [this,p](auto& x) {
-				for (auto usernumber : x.second->userIDS) {
-					if (usernumber == p.userID) {
-						x.seconde->userSessionS.emplace_back()
-					}
-				}
-			});
-		});*/
-		
+
+		// TCPGameSession 생성
+		auto newSession = std::make_shared<TCPGameSession>(std::move(mTCPSocket));
+
+		// 세션 시작 (recv 시작)
+		newSession->Start();
+
+		// 다음 클라이언트 accept 대기
 		ServerAccept();
-	});
+		});
 }
 
 
@@ -85,6 +78,7 @@ TCPGameSession::TCPGameSession(tcp::socket tcpsock) noexcept
 	prevDataSize = 0, curDataSize = 0;
 	ZeroMemory(TCPrecvBuffer, MAXSIZE);
 	ZeroMemory(TCPPacketData, MAXSIZE);
+	ZeroMemory(PartyRoomCode, RoomCodeLen);
 	std::cout << "createGameSession\n";
 
 }
@@ -101,8 +95,67 @@ void TCPGameSession::Start()
 
 void TCPGameSession::GamePacketProcess()
 {
+	// 패킷 타입에 따라 처리
+	Packet_Type type = static_cast<Packet_Type>(TCPPacketData[1]);
 
+	switch (type) {
+	case CG_LINKGAMESERVER: // 클라이언트가 게임 서버에 연결 요청
+	{
+		CGLinkInfo packet;
+		memcpy(&packet, TCPPacketData, sizeof(CGLinkInfo));
 
+		// 룸 코드 저장
+		memcpy(PartyRoomCode, packet.RoomCode, RoomCodeLen);
+
+		std::string roomCode(packet.RoomCode, RoomCodeLen);
+
+		// 해당 룸이 존재하는지 확인
+		if (Rooms.contains(roomCode)) {
+			Rooms.visit(roomCode, [this, &packet](auto& pair) {
+				auto& room = pair.second;
+
+				// 첫 번째 플레이어인지 두 번째 플레이어인지 확인
+				if (!room->FirstTCPSession) {
+					room->FirstTCPSession = shared_from_this();
+					std::cout << "Player 1 connected to room: " << roomCode << std::endl;
+				}
+				else if (!room->SecondTCPSession) {
+					room->SecondTCPSession = shared_from_this();
+					std::cout << "Player 2 connected to room: " << roomCode << std::endl;
+				}
+				else {
+					std::cout << "Room is full: " << roomCode << std::endl;
+				}
+				});
+		}
+		else {
+			std::cout << "Room not found: " << roomCode << std::endl;
+		}
+		break;
+	}
+
+	case CG_MOVEMENT:
+	{
+		// 이동 패킷 처리
+		CGPickingMove packet;
+		memcpy(&packet, TCPPacketData, sizeof(CGPickingMove));
+
+		// TODO: 게임 룸의 오브젝트 업데이트
+
+		break;
+	}
+
+	case CG_ATTACK:
+	{
+		// 공격 패킷 처리
+		// TODO: 구현
+		break;
+	}
+
+	default:
+		std::cout << "Unknown packet type: " << (int)type << std::endl;
+		break;
+	}
 }
 
 
@@ -125,4 +178,3 @@ void TCPGameSession::PacketSend(void* packet)
 			}
 		});
 }
-

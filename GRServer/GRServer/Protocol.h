@@ -40,6 +40,7 @@ enum Packet_Type : BYTE {
 	CL_START_GAME,
 
 	// Client -> Game
+	CG_LINKGAMESERVER,	//처음 입장, 룸 코드를 통해 게임서버로 연결 ( 임시 연결)
 	CG_MOVEMENT,		//피킹된 객체들의 움직임(현재 위치와 목적지)를 보내자.
 	CG_ATTACK,			//공격(
 
