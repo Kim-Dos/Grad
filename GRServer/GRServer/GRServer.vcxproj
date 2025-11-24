@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CollisionSystem.hpp" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameRoom.hpp" />
     <ClInclude Include="GametoLobby.hpp">

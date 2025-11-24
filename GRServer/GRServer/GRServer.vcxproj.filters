@@ -45,6 +45,9 @@
     <ClInclude Include="GameRoom.hpp">
       <Filter>GAME</Filter>
     </ClInclude>
+    <ClInclude Include="CollisionSystem.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

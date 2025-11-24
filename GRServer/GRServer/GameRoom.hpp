@@ -4,8 +4,11 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <memory>
+#include "UDPGameServer.hpp"
 #include "Player.h"
 #include "Protocol.h"
+#include "CollisionSystem.hpp"
 #pragma once
 
 
@@ -16,16 +19,19 @@ using boost::asio::ip::udp;
 class UDPGameSession;
 class TCPGameSession;
 
-class GameRoom	//게임 내부의 전반적인 처리 및 게임 오브젝트들을 관리
+class GameRoom	// 게임 내부의 전반적인 처리 및 게임 오브젝트들을 관리
 	: public std::enable_shared_from_this<GameRoom>
 {
 private:
 	std::string roomCode;
 	std::string mapName;
 
-	std::shared_ptr<UDPGameSession> UDPSession; // 서버에서 실시간으로 처리되는 것들을 클라이언트로 송신 ( 멀티캐스트를 통해서 모든 클라이언트에게 송신 )
+	std::shared_ptr<UDPGameSession> UDPSession; // 서버에서 실시간으로 처리되는 것들을 클라이언트로 송신
 
 	concurrent_flat_map<int, std::shared_ptr<GameActor>> GameObjs; // 오브젝트는 인당 200개, 기록있는 오브젝트 포함하면 1000개 정도
+
+	// 충돌 시스템 추가
+	std::unique_ptr<ServerCollisionSystem> collisionSystem;
 
 public:
 	// TCPGameSession에서 접근 가능하도록 public으로 변경
@@ -40,6 +46,12 @@ public:
 
 	void SetMulticast();
 
-	// 충돌 검사 함수
+	// 기존 충돌 검사 함수 (간단한 원형 충돌)
 	void CheckCollisions();
+
+	// 새로운 서버 권위 충돌 검사 함수들
+	void RegisterPlayerObjects(int playerNumber, const std::vector<ServerGameObject>& objects);
+	bool ValidateAndProcessMovement(int playerNumber, const std::vector<MoveData>& moveRequests,
+		std::vector<MoveData>& validatedMoves);
+	ServerCollisionSystem* GetCollisionSystem() { return collisionSystem.get(); }
 };

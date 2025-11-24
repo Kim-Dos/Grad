@@ -1,34 +1,34 @@
 #include "TCPGameServer.hpp"
 #include "UDPGameServer.hpp"
-#include "GametoLobby.hpp"
-#include "Player.h"
+#include "GameRoom.hpp"
 
 concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
-
 void Init_Server()
 {
-	_wsetlocale(LC_ALL, L"korean");
+    _wsetlocale(LC_ALL, L"korean");
 }
 
 void worker_thread(boost::asio::io_context& IoContext)
 {
-	IoContext.run();
+    IoContext.run();
 }
 
 int main() {
+    std::vector<std::thread> worker_Threads;
 
-	
-	std::vector<std::thread> worker_Threads;
+    boost::asio::io_context IoContext;
 
-	boost::asio::io_context IoContext;
-	//GametoLobby gameconnectlobby(IoContext);
-	GameTCP tcpAcceptor(IoContext, SERVERPORT);
-	GameUDP udpAcceptor(IoContext, SERVERPORT);
+    // 데모용 게임 룸 미리 생성
+    auto demoRoom = std::make_shared<GameRoom>("DEMO", "DemoMap");
+    Rooms.emplace("DEMO", demoRoom);
+    std::cout << "Demo room created: DEMO" << std::endl;
 
-	Init_Server();
+    GameTCP tcpAcceptor(IoContext, SERVERPORT);
+    //GameUDP udpAcceptor(IoContext, SERVERPORT);
 
-	for (auto i = 0; i < 6; ++i) worker_Threads.emplace_back(worker_thread, IoContext);
-	for (auto& th : worker_Threads) th.join();
+    Init_Server();
 
+    for (auto i = 0; i < 6; ++i) worker_Threads.emplace_back(worker_thread, std::ref(IoContext));
+    for (auto& th : worker_Threads) th.join();
 }

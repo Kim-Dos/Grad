@@ -46,21 +46,22 @@ enum Packet_Type : BYTE {
 
 	// Lobby -> Client
 	LC_LOG_INFO, // 로그인 및 검색결과
-	LC_PUSH_MATCHING_Q, // 퀵매칭하려고 방 생성 후 오토매칭
+	LC_PUSH_MATCHING_Q, // 퀵매칭완료고 방 생성 후 오토매칭
 	LC_FIND_ROOM_CODE, // 룸코드보고 입장
 	LC_ROOM_CREATE, // 방 생성
-	LC_COMPLETE_SESSION, //게임서버로 이제 갈 준비해라 및 게임서버 IP보내줘야함
+	LC_COMPLETE_SESSION, //게임서버로 이제 갈 준비하라 및 게임서버 IP보내줘야함
 
 	// Lobby -> Game
 	LG_ROOMINFO,		//방을 생성하고, 입력된 정보를 통해 클라이언트 인원들을 받아라
-	LG_REFAIRROOM,		// (서버하나 다운시) 다른 서버에서있는 정보를 읽어와서 너가 기존게임을 이어가라
-	
+	LG_REFAIRROOM,		// (서버하나 다운시) 다른 서버에서있는 정보를 읽어와서 넘겨 기존게임을 이어라
+
 	// Game -> Lobby
 	GL_SERVERAMOUNT, // 서버에 얼만큼 차있는지
 	GL_ENDGAME,		//서버에서 게임이 끝났다. ( == 클라이언트 정보들을 가져가라)
 
 	// Game -> Client 
 	GC_OTHER_MOVEMENT,		//이 객체의 정보를 다른 플레이어들에게 보내야 함.
+	GC_POSITION_CORRECTION,	//서버에서 클라이언트 위치 보정 (NEW)
 	GC_CHECKATTACK,		//
 	GC_LINKGAMESERVER
 };
@@ -79,7 +80,7 @@ struct ButtonPack {
 struct MoveData {
 	unsigned char objnumber;
 	float pos_x, pos_y;
-	float dset_x, dest_z;
+	float dest_x, dest_z;
 };
 
 
@@ -114,7 +115,7 @@ struct CLClickQMatching
 struct CLEnterRoomCode
 {
 	BYTE size;
-	Packet_Type type; 
+	Packet_Type type;
 	char RoomCode[RoomCodeLen];
 };
 
@@ -122,7 +123,7 @@ struct CLEnterRoomCode
 struct CLCreateRoom
 {
 	BYTE size;
-	Packet_Type type; 
+	Packet_Type type;
 	BYTE selected_map;
 };
 
@@ -192,7 +193,7 @@ struct LCPushMatchingQ
 };
 
 // 룸코드를 보고 입장가능 확인 반환
-struct LCFindRoomCode 
+struct LCFindRoomCode
 {
 	BYTE size;
 	Packet_Type type;
@@ -208,7 +209,7 @@ struct LCRoomCreate
 	char RoomCode[RoomCodeLen];
 };
 
-// 게임서버로 이제 갈 준비해라 및 게임서버 IP보내줘야함
+// 게임서버로 이제 갈 준비하라 및 게임서버 IP보내줘야함
 struct LCStartGameServer {
 	BYTE size;
 	Packet_Type type;
@@ -252,7 +253,7 @@ struct GCReadytoStart {
 };
 
 // 일정거리에 상대편 객체가 와서, 공격할때.
-// 공격 command가 아닐때, 공격당해서 같이 공격 command로 바뀔때.
+// 공격 command가 아닐때, 공격대해서 같이 공격 command로 바뀔때.
 struct GCAttack {
 	BYTE size;
 	Packet_Type type;
@@ -269,6 +270,15 @@ struct GCPickingMove {
 	int playerNumber;
 	char act_command;
 	MoveData move_data[12];
+};
+
+// 서버에서 클라이언트 위치 보정 패킷 (NEW)
+struct GCPositionCorrection {
+	BYTE size;
+	Packet_Type type;
+	BYTE pickingsize;
+	int playerNumber;  // 보정 대상 플레이어
+	MoveData corrected_data[12];  // 서버에서 검증된 올바른 위치
 };
 
 #pragma pack(pop)

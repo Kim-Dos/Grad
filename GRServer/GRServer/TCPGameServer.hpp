@@ -34,12 +34,14 @@ private:
 
 	tcp::socket TCPSocket;
 	int prevDataSize, curDataSize;
+	int playerNumber; // 플레이어 번호 (1 or 2)
 
 	char PartyRoomCode[RoomCodeLen];
 	unsigned char TCPrecvBuffer[MAXSIZE]; // 수신버퍼에서 꺼어오는 버퍼
 	unsigned char TCPPacketData[MAXSIZE]; // 프로세스에 사용될 패킷 데이터
 
 	void recv();
+	void BroadcastToOthers(unsigned char* packetData); // 다른 플레이어에게 중계
 
 public:
 
@@ -55,4 +57,7 @@ public:
 
 	inline const tcp::socket& getSocket() { return TCPSocket; }
 
+	void SetRoomCode(const std::string& code);
+	void SetPlayerNumber(int num);
+	inline int GetPlayerNumber() const { return playerNumber; }
 };
