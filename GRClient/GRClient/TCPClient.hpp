@@ -18,7 +18,7 @@ public:
     void SendMovement(const std::vector<MoveData>& moveData);
 
 private:
-    tcp::socket msocket;
+    boost::asio::basic_stream_socket<tcp, boost::asio::io_context::executor_type> msocket;
     unsigned char recvBuffer[1024];
     unsigned char PacketData[1024];
     int prevDataSize;

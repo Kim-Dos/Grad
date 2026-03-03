@@ -18,6 +18,7 @@ int main() {
     std::vector<std::thread> worker_Threads;
 
     boost::asio::io_context IoContext;
+    auto work = boost::asio::make_work_guard(IoContext);
 
     // 데모용 게임 룸 미리 생성
     auto demoRoom = std::make_shared<GameRoom>("DEMO", "DemoMap");

@@ -19,7 +19,7 @@ public:
 	void recv(unsigned char (&arr) [1024]);
 
 private:
-	udp::socket mUDPSocket;
+	boost::asio::basic_datagram_socket<udp, boost::asio::io_context::executor_type> mUDPSocket;
 	unsigned char recvBuffer[1024];
 	unsigned char PacketData[1024];
 	int prevDataSize;

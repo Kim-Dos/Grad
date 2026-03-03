@@ -5,7 +5,7 @@ using boost::asio::ip::tcp;
 const char* ip = "127.0.0.1";
 int port = 4000;  // 게임 서버 포트
 
-boost::asio::ip::tcp::endpoint GameServerIP(boost::asio::ip::address::from_string(ip), port);
+boost::asio::ip::tcp::endpoint GameServerIP(boost::asio::ip::make_address(ip), port);
 
 TCPC::TCPC(boost::asio::io_context& service) noexcept
     : msocket(service)
