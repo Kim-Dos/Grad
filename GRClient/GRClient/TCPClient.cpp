@@ -15,13 +15,14 @@ TCPC::TCPC(boost::asio::io_context& service) noexcept
     ZeroMemory(PacketData, MAXSIZE);
 
     // 게임 서버로 바로 연결
-    msocket.async_connect(GameServerIP, [](boost::system::error_code ec) {
+    msocket.async_connect(GameServerIP, [this](boost::system::error_code ec) {
         if (ec) {
             std::cout << "Connection failed: " << ec.what() << std::endl;
             exit(-1);
         }
         std::cout << "Connected to game server!" << std::endl;
-        });
+        recv(recvBuffer);
+	});
 }
 
 void TCPC::recv(unsigned char(&arr)[1024]) {
@@ -33,10 +34,10 @@ void TCPC::recv(unsigned char(&arr)[1024]) {
                 std::cout << ec.what() << std::endl;
                 exit(-1);
             }
-            int BufferLoad = static_cast<int>(length);
+            int LoadedBuff = static_cast<int>(length);
 
-            unsigned char* PacketPoint = recvBuffer;
-            while (0 < BufferLoad) {
+            unsigned char* PacketPoint = arr;
+            while (0 < LoadedBuff) {
                 if (curDataSize == 0) {
                     curDataSize = PacketPoint[0];
                     if (curDataSize > 200) {
@@ -46,19 +47,18 @@ void TCPC::recv(unsigned char(&arr)[1024]) {
                 }
                 int build = curDataSize - prevDataSize;
 
-                if (build <= BufferLoad) {
+                if (build <= LoadedBuff) {
                     memcpy(PacketData + prevDataSize, PacketPoint, build);
                     ClientPacketProcess();
                     curDataSize = 0;
                     prevDataSize = 0;
-                    BufferLoad -= build;
+                    LoadedBuff -= build;
                     PacketPoint += build;
                 }
                 else {
-                    memcpy(PacketData + prevDataSize, PacketPoint, build);
-                    prevDataSize += build;
-                    build = 0;
-                    PacketPoint += BufferLoad;
+                    memcpy(PacketData + prevDataSize, PacketPoint, LoadedBuff);
+                    prevDataSize += LoadedBuff;
+                    LoadedBuff = 0;
                 }
             }
             recv(arr);
@@ -70,17 +70,20 @@ void TCPC::Packetsend(void* packet) {
     int packetsize = reinterpret_cast<unsigned char*>(packet)[0];
     unsigned char* buffer = new unsigned char[packetsize];
     memcpy(buffer, packet, packetsize);
-    msocket.async_write_some(boost::asio::buffer(buffer, (size_t)packetsize),
-        [this, buffer, packetsize](boost::system::error_code ec, std::size_t bytes_transferred)
-        {
-            if (!ec)
-            {
-                if (packetsize != bytes_transferred) {
-                    std::cout << "ERR - Bytes_transferred\n";
-                }
-                delete buffer;
-            }
-        });
+    boost::asio::post(msocket.get_executor(),[this, buffer, packetsize]() {
+        msocket.async_write_some(boost::asio::buffer(buffer, (size_t)packetsize),
+       [this, buffer, packetsize](boost::system::error_code ec, std::size_t bytes_transferred)
+       {
+           if (!ec)
+           {
+               if (packetsize != bytes_transferred) {
+                   std::cout << "ERR - Bytes_transferred\n";
+               }
+               delete buffer;
+           }
+       });
+	});
+   
 }
 
 void TCPC::ClientPacketProcess() {

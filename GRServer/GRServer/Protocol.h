@@ -79,7 +79,7 @@ struct ButtonPack {
 
 struct MoveData {
 	unsigned char objnumber;
-	float pos_x, pos_y;
+	float pos_x, pos_z;
 	float dest_x, dest_z;
 };
 
