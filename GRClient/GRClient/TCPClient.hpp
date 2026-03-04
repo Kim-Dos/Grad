@@ -5,17 +5,24 @@
 #include "UDPClient.hpp"
 #include "../../../Grad/GRServer/GRServer/Protocol.h"
 
+class NetworkBridge;  // forward declaration
+
 using boost::asio::ip::tcp;
 
 class TCPC
 {
 public:
-    TCPC(boost::asio::io_context& service) noexcept;
+    // ★ bridge 포인터 추가
+    TCPC(boost::asio::io_context& service, NetworkBridge* bridge) noexcept;
     ~TCPC() { std::cout << "TCPC out\n"; }
 
     void recv(unsigned char(&arr)[1024]);
 
     void SendMovement(const std::vector<MoveData>& moveData);
+
+    void SendRaw(const void* packet, size_t length) {
+        Packetsend(packet, length);
+    }
 
 private:
     boost::asio::basic_stream_socket<tcp, boost::asio::io_context::executor_type> msocket;
@@ -26,12 +33,13 @@ private:
 
     int myPlayerNumber = 0;
 
-    void Packetsend(void* packet);
+    NetworkBridge* mBridge = nullptr;  // ★ 추가
+
+    void Packetsend(const void* packet, size_t size);
     void ClientPacketProcess();
     void Character_Positioning();
     void traceKey();
 
-    // 새로 추가된 함수들
     void UpdateOtherPlayerObject(int playerNumber, const MoveData& moveData);
     void CorrectMyObjectPosition(const MoveData& correctedData);
 };

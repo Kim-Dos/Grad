@@ -99,7 +99,7 @@ bool GameRoom::ValidateAndProcessMovement(int playerNumber, const std::vector<Mo
 		ServerGameObject obj;
 		obj.objNumber = move.objnumber;
 		obj.ownerPlayerNumber = playerNumber;
-		obj.position = { move.pos_x, 0, move.pos_y };
+		obj.position = { move.pos_x, 0, move.pos_z };
 		obj.destination = { move.dest_x, 0, move.dest_z };
 		obj.UpdateBoundingBox();
 
@@ -120,7 +120,7 @@ bool GameRoom::ValidateAndProcessMovement(int playerNumber, const std::vector<Mo
 		MoveData validMove;
 		validMove.objnumber = moveRequests[i].objnumber;
 		validMove.pos_x = validPositions[i].x;
-		validMove.pos_y = validPositions[i].z;
+		validMove.pos_z = validPositions[i].z;
 		validMove.dest_x = validPositions[i].x;
 		validMove.dest_z = validPositions[i].z;
 

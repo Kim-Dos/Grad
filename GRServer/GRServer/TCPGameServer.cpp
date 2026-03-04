@@ -1,14 +1,12 @@
 // ---------------------
-// Game Server - Integrated with Collision Detection
+// Game Server
 // ---------------------
 #include "TCPGameServer.hpp"
 #include "GameRoom.hpp"
 
 extern concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
-GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort)
-	: mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)),
-	mTCPSocket(IOContext)
+GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort) : mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)), mTCPSocket(IOContext)
 {
 	ServerAccept();
 }
@@ -18,7 +16,7 @@ void GameTCP::ServerAccept()
 {
 	mTCPAcceptor.async_accept(mTCPSocket, [this](boost::system::error_code ec) {
 		if (ec) {
-			std::cout << "AcceptError" << std::endl;
+			std::cout << " AcceptError" << std::endl;
 			exit(-1);
 		}
 
@@ -126,69 +124,24 @@ void TCPGameSession::GamePacketProcess()
 	Packet_Type type = static_cast<Packet_Type>(TCPPacketData[1]);
 
 	switch (type) {
-	case CG_MOVEMENT: // 피킹된 객체 이동 - 서버에서 충돌 검증 (NEW)
+	case CG_MOVEMENT: // 피킹된 객체 이동
 	{
 		CGPickingMove packet;
 		memcpy(&packet, TCPPacketData, sizeof(CGPickingMove));
 
-		std::cout << "[Player " << playerNumber << "] Movement Request - PickingSize: "
+		std::cout << "[Player " << playerNumber << "] Movement - PickingSize: "
 			<< (int)packet.pickingsize << std::endl;
 
-		// 이동 요청 데이터 추출
-		std::vector<MoveData> moveRequests;
-		for (int i = 0; i < packet.pickingsize; ++i) {
-			moveRequests.push_back(packet.move_data[i]);
-			std::cout << "  Object " << (int)packet.move_data[i].objnumber
-				<< " wants to move to (" << packet.move_data[i].dest_x
-				<< ", " << packet.move_data[i].dest_z << ")" << std::endl;
-		}
+		// 다른 플레이어에게 GC_OTHER_MOVEMENT로 변환하여 전송
+		GCPickingMove gcPacket;
+		gcPacket.size = sizeof(GCPickingMove);
+		gcPacket.type = GC_OTHER_MOVEMENT;
+		gcPacket.pickingsize = packet.pickingsize;
+		gcPacket.playerNumber = playerNumber; // 누가 보낸 것인지 표시
+		gcPacket.act_command = packet.act_command;
+		memcpy(gcPacket.move_data, packet.move_data, sizeof(packet.move_data));
 
-		// 서버에서 충돌 검증
-		std::string roomCode(PartyRoomCode, RoomCodeLen);
-		if (Rooms.contains(roomCode)) {
-			Rooms.visit(roomCode, [this, &packet, &moveRequests](auto&& pair) {
-				auto& room = pair.second;
-
-				// 충돌 검증 수행
-				std::vector<MoveData> validatedMoves;
-				bool allValid = room->ValidateAndProcessMovement(
-					playerNumber, moveRequests, validatedMoves);
-
-				if (!allValid) {
-					std::cout << "  [SERVER] Movement corrected due to collision!" << std::endl;
-
-					// 충돌 발생 - 요청한 플레이어에게 보정된 위치 전송
-					GCPositionCorrection correctionPacket;
-					correctionPacket.size = sizeof(GCPositionCorrection);
-					correctionPacket.type = GC_POSITION_CORRECTION;
-					correctionPacket.pickingsize = static_cast<BYTE>(validatedMoves.size());
-					correctionPacket.playerNumber = playerNumber;
-
-					for (size_t i = 0; i < validatedMoves.size(); ++i) {
-						correctionPacket.corrected_data[i] = validatedMoves[i];
-					}
-
-					// 본인에게 보정 패킷 전송
-					PacketSend(&correctionPacket);
-				}
-
-				// 검증된 이동 데이터를 다른 플레이어에게 브로드캐스트
-				GCPickingMove gcPacket;
-				gcPacket.size = sizeof(GCPickingMove);
-				gcPacket.type = GC_OTHER_MOVEMENT;
-				gcPacket.pickingsize = static_cast<BYTE>(validatedMoves.size());
-				gcPacket.playerNumber = playerNumber;
-				gcPacket.act_command = packet.act_command;
-
-				for (size_t i = 0; i < validatedMoves.size(); ++i) {
-					gcPacket.move_data[i] = validatedMoves[i];
-				}
-
-				BroadcastToOthers(reinterpret_cast<unsigned char*>(&gcPacket));
-
-				std::cout << "  [SERVER] Validated movement broadcasted" << std::endl;
-				});
-		}
+		BroadcastToOthers(reinterpret_cast<unsigned char*>(&gcPacket));
 		break;
 	}
 

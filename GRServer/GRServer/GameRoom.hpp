@@ -34,6 +34,9 @@ private:
 	std::unique_ptr<ServerCollisionSystem> collisionSystem;
 
 public:
+	// TCPGameSession에서 접근 가능하도록 public으로 변경
+	std::shared_ptr<TCPGameSession> FirstTCPSession; // 클라이언트를 수신받아 서버에서 이벤트 처리			1번 플레이어
+	std::shared_ptr<TCPGameSession> SecondTCPSession; // 클라이언트를 수신받아 서버에서 이벤트 처리			2번 플레이어
 
 	GameRoom(const std::string& roomCode, const std::string& MapName);
 
