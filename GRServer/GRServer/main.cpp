@@ -1,8 +1,7 @@
 #include "TCPGameServer.hpp"
-#include "UDPGameServer.hpp"
-#include "GameRoom.hpp"
+//#include "UDPGameServer.hpp"
+#include "RoomManager.hpp"
 
-concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
 void Init_Server()
 {
@@ -15,21 +14,18 @@ void worker_thread(boost::asio::io_context& IoContext)
 }
 
 int main() {
-    std::vector<std::thread> worker_Threads;
-
     boost::asio::io_context IoContext;
     auto work = boost::asio::make_work_guard(IoContext);
 
-    // 데모용 게임 룸 미리 생성
-    auto demoRoom = std::make_shared<GameRoom>("DEMO", "DemoMap");
-    Rooms.emplace("DEMO", demoRoom);
-    std::cout << "Demo room created: DEMO" << std::endl;
+    RoomManager roomManager(std::ref(IoContext));
+    roomManager.CreateRoom("DEMO", "DemoMap");
 
-    GameTCP tcpAcceptor(IoContext, SERVERPORT);
-    //GameUDP udpAcceptor(IoContext, SERVERPORT);
+    GameTCP tcpAcceptor(std::ref(IoContext), SERVERPORT, roomManager);
 
     Init_Server();
 
-    for (auto i = 0; i < 6; ++i) worker_Threads.emplace_back(worker_thread, std::ref(IoContext));
+    std::vector<std::thread> worker_Threads;
+    for (int i = 0; i < 6; ++i)
+        worker_Threads.emplace_back([&IoContext]() { IoContext.run(); });
     for (auto& th : worker_Threads) th.join();
 }

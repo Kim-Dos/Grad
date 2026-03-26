@@ -48,6 +48,9 @@
     <ClInclude Include="CollisionSystem.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="ServerMovement.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -73,6 +76,9 @@
     </ClCompile>
     <ClCompile Include="GameRoom.cpp">
       <Filter>GAME</Filter>
+    </ClCompile>
+    <ClCompile Include="RoomManager.hpp">
+      <Filter>헤더 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

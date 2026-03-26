@@ -1,40 +1,42 @@
 #include "GameRoom.hpp"
 #include "TCPGameServer.hpp"
-#include "UDPGameServer.hpp"
 
 
 extern concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
-GameRoom::GameRoom(const std::string& roomCode, const std::string& MapName)
+GameRoom::GameRoom(boost::asio::io_context& ioc, const std::string& roomCode, const std::string& MapName) : strand_(boost::asio::make_strand(ioc)), roomCode(roomCode), mapName(MapName)
 {
-	this->roomCode = roomCode;
-	this->mapName = MapName;
-
-	// 충돌 시스템 초기화
 	collisionSystem = std::make_unique<ServerCollisionSystem>();
-
-	std::cout << "GameRoom created with collision system: " << roomCode << std::endl;
 }
 
-
-bool GameRoom::IsDamaged()
+void GameRoom::AddSession(std::shared_ptr<TCPGameSession> session)
 {
-	// Damage Detection 
-	return false;
+	boost::asio::post(strand_, [this, self = shared_from_this(), session]() {
+		for (int i = 0; i < 2; ++i) {
+			if (!sessions_[i]) {
+				sessions_[i] = session;
+				session->SetRoomCode(roomCode);
+				session->SetPlayerNumber(i + 1);
+				return;
+			}
+		}
+	});
 }
 
-void GameRoom::SetMulticast()
+std::shared_ptr<TCPGameSession> GameRoom::GetSession(int playerNumber) const
 {
-	// Set Multicast Groups for UDP Session
+	return sessions_[playerNumber];
+}
 
-	// User 1 UDP JOIN
-	boost::asio::ip::address multicast_address = FirstTCPSession->getSocket().local_endpoint().address();
-	UDPSession->JoinGroup(multicast_address);
-
-	// User 2 UDP JOIN
-	multicast_address = SecondTCPSession->getSocket().local_endpoint().address();
-	UDPSession->JoinGroup(multicast_address);
-
+void GameRoom::BroadcastToOthers(int senderNumber, std::shared_ptr<std::vector<unsigned char>> data)
+{
+	boost::asio::post(strand_, [this, self = shared_from_this(), senderNumber, data]() {
+		for (auto& session : sessions_) {
+			if (session && session->GetPlayerNumber() != senderNumber) {
+				session->QueueSend(data);
+			}
+		}
+	});
 }
 
 // 기존 간단한 충돌 검사 함수 (원형 충돌 기반)

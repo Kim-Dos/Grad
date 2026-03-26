@@ -1,6 +1,7 @@
 #include <vector>
 #pragma once
 
+
 typedef unsigned char BYTE;
 
 constexpr unsigned int SERVERPORT = 4000;
@@ -17,6 +18,13 @@ const int RoomCodeLen = 14;
 const int ipsize = 16;
 const int NumOfGameServer = 2;
 
+constexpr float MAX_MOVE_SPEED = 300.0f;        // 오브젝트 최대 이동 속도 (units/sec)
+constexpr float SPEED_HACK_TOLERANCE = 1.5f;    // 속도핵 판정 여유 (1.5배까지 허용)
+constexpr float MAP_BOUNDARY = 10000.0f;        // 맵 경계
+constexpr float POSITION_SYNC_INTERVAL = 0.15f; // 위치 동기화 간격 (초)
+constexpr int   MAX_HACK_WARNINGS = 5;
+
+#pragma pack(push, 1)
 
 struct FXYZ {
 	float x, y, z;
@@ -66,6 +74,170 @@ enum Packet_Type : BYTE {
 	GC_LINKGAMESERVER
 };
 
+// Client → Server (Game)
+constexpr unsigned char CS_MOVE_OBJ_REQUEST = 50;  // 오브젝트 이동 요청
+constexpr unsigned char CS_MOVE_MULTI_REQUEST = 51;  // 다중 오브젝트 이동 요청
+constexpr unsigned char CS_STOP_OBJ_REQUEST = 52;  // 오브젝트 정지 요청
+
+// Server → Client (Game)
+constexpr unsigned char SC_MOVE_OBJ_RESULT = 60;  // 단일 오브젝트 이동 결과
+constexpr unsigned char SC_MOVE_MULTI_RESULT = 61;  // 다중 오브젝트 이동 결과
+constexpr unsigned char SC_OBJ_POSITION_SYNC = 62;  // 주기적 위치 동기화
+constexpr unsigned char SC_MOVE_REJECTED = 63;  // 이동 거부 (핵 감지 등)
+constexpr unsigned char SC_HACK_WARNING = 64;  // 핵 경고
+
+struct CSMoveObjRequest {
+	unsigned char size;
+	unsigned char type;
+	unsigned char playerNumber;     // 요청한 플레이어 번호
+	unsigned char objNumber;        // 이동시킬 오브젝트 번호
+	FXYZ destination;               // 마우스 피킹으로 계산한 목적지 (월드 좌표)
+
+	CSMoveObjRequest() {
+		size = sizeof(CSMoveObjRequest);
+		type = CS_MOVE_OBJ_REQUEST;
+		playerNumber = 0;
+		objNumber = 0;
+		destination = { 0, 0, 0 };
+	}
+};
+
+// 다중 오브젝트 이동 요청 (드래그 선택 후 이동)
+// 최대 8개 오브젝트 동시 이동
+constexpr int MAX_MULTI_MOVE = 8;
+
+struct CSMoveMultiRequest {
+	unsigned char size;
+	unsigned char type;
+	unsigned char playerNumber;
+	unsigned char objCount;         // 이동시킬 오브젝트 수
+	unsigned char objNumbers[MAX_MULTI_MOVE];
+	FXYZ destination;               // 공통 목적지 (서버에서 포메이션 오프셋 계산)
+
+	CSMoveMultiRequest() {
+		size = sizeof(CSMoveMultiRequest);
+		type = CS_MOVE_MULTI_REQUEST;
+		playerNumber = 0;
+		objCount = 0;
+		memset(objNumbers, 0, sizeof(objNumbers));
+		destination = { 0, 0, 0 };
+	}
+};
+// 오브젝트 정지 요청
+struct CSStopObjRequest {
+	unsigned char size;
+	unsigned char type;
+	unsigned char playerNumber;
+	unsigned char objNumber;
+
+	CSStopObjRequest() {
+		size = sizeof(CSStopObjRequest);
+		type = CS_STOP_OBJ_REQUEST;
+		playerNumber = 0;
+		objNumber = 0;
+	}
+};
+
+// ----------------------------------------------------------
+// Server → Client 패킷 구조체
+// ----------------------------------------------------------
+
+// 단일 오브젝트 이동 결과 (서버가 검증 완료 후 브로드캐스트)
+struct SCMoveObjResult {
+	unsigned char size;
+	unsigned char type;
+	unsigned char ownerPlayer;      // 이 오브젝트의 소유자
+	unsigned char objNumber;
+	FXYZ currentPos;                // 서버가 확정한 현재 위치
+	FXYZ destination;               // 서버가 확정한 목적지
+	float speed;                    // 서버가 정한 이동 속도
+
+	SCMoveObjResult() {
+		size = sizeof(SCMoveObjResult);
+		type = SC_MOVE_OBJ_RESULT;
+		ownerPlayer = 0;
+		objNumber = 0;
+		currentPos = { 0, 0, 0 };
+		destination = { 0, 0, 0 };
+		speed = 0.0f;
+	}
+};
+
+// 다중 오브젝트 이동 결과
+struct SCMoveMultiResult {
+	unsigned char size;
+	unsigned char type;
+	unsigned char ownerPlayer;
+	unsigned char objCount;
+	unsigned char objNumbers[MAX_MULTI_MOVE];
+	FXYZ destinations[MAX_MULTI_MOVE];  // 각 오브젝트별 확정된 목적지
+	float speed;
+
+	SCMoveMultiResult() {
+		size = sizeof(SCMoveMultiResult);
+		type = SC_MOVE_MULTI_RESULT;
+		ownerPlayer = 0;
+		objCount = 0;
+		memset(objNumbers, 0, sizeof(objNumbers));
+		speed = 0.0f;
+	}
+};
+
+// 주기적 위치 동기화 (서버 → 모든 클라이언트, 100~200ms 주기)
+constexpr int MAX_SYNC_OBJECTS = 16;
+
+struct SCSyncEntry {
+	unsigned char objNumber;
+	unsigned char ownerPlayer;
+	FXYZ position;
+	FXYZ direction;
+};
+
+struct SCPositionSync {
+	unsigned char size;
+	unsigned char type;
+	unsigned char objCount;
+	SCSyncEntry entries[MAX_SYNC_OBJECTS];
+
+	SCPositionSync() {
+		size = sizeof(SCPositionSync);
+		type = SC_OBJ_POSITION_SYNC;
+		objCount = 0;
+	}
+};
+
+// 이동 거부 (클라이언트에게만 전송)
+struct SCMoveRejected {
+	unsigned char size;
+	unsigned char type;
+	unsigned char objNumber;
+	FXYZ correctedPos;              // 서버가 판단한 올바른 위치
+	unsigned char reason;           // 0=충돌, 1=속도초과, 2=권한없음, 3=맵밖
+
+	SCMoveRejected() {
+		size = sizeof(SCMoveRejected);
+		type = SC_MOVE_REJECTED;
+		objNumber = 0;
+		correctedPos = { 0, 0, 0 };
+		reason = 0;
+	}
+};
+
+// 핵 경고 (누적 시 킥)
+struct SCHackWarning {
+	unsigned char size;
+	unsigned char type;
+	unsigned char warningCount;     // 현재까지 누적 경고 횟수
+	unsigned char maxWarnings;      // 최대 허용 횟수
+
+	SCHackWarning() {
+		size = sizeof(SCHackWarning);
+		type = SC_HACK_WARNING;
+		warningCount = 0;
+		maxWarnings = 5;
+	}
+};
+
 enum Skilltype {
 	NormalSkill,
 	UltimitSkill
@@ -85,7 +257,7 @@ struct MoveData {
 
 
 
-#pragma pack(push, 1)
+
 
 
 //--------------Client  -->> LobbyServer ---------------

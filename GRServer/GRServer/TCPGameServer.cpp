@@ -2,11 +2,13 @@
 // Game Server
 // ---------------------
 #include "TCPGameServer.hpp"
-#include "GameRoom.hpp"
 
-extern concurrent_flat_map<std::string, std::shared_ptr<GameRoom>> Rooms;
 
-GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort) : mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort)), mTCPSocket(IOContext)
+GameTCP::GameTCP(boost::asio::io_context& IOContext, int ServerPort, RoomManager& roomMgr)
+	: ioc_(IOContext)
+	, mTCPAcceptor(IOContext, tcp::endpoint(tcp::v4(), ServerPort))
+	, mTCPSocket(IOContext)
+	, roomManager_(roomMgr)
 {
 	ServerAccept();
 }
@@ -16,50 +18,23 @@ void GameTCP::ServerAccept()
 {
 	mTCPAcceptor.async_accept(mTCPSocket, [this](boost::system::error_code ec) {
 		if (ec) {
-			std::cout << " AcceptError" << std::endl;
-			exit(-1);
+			std::cout << "AcceptError" << std::endl;
+			return;
 		}
 
-		// TCPGameSession 생성
-		auto newSession = std::make_shared<TCPGameSession>(std::move(mTCPSocket));
+		auto newSession = std::make_shared<TCPGameSession>(std::move(mTCPSocket), ioc_);
 
-		// 데모: 바로 DEMO 룸에 연결
-		std::string demoRoomCode = "DEMO";
-		if (Rooms.contains(demoRoomCode)) {
-			Rooms.visit(demoRoomCode, [&newSession](auto&& pair) {
-				auto& room = pair.second;
-
-				if (!room->FirstTCPSession) {
-					room->FirstTCPSession = newSession;
-					newSession->SetRoomCode("DEMO");
-					newSession->SetPlayerNumber(1);
-					std::cout << "Player 1 connected to DEMO room" << std::endl;
-				}
-				else if (!room->SecondTCPSession) {
-					room->SecondTCPSession = newSession;
-					newSession->SetRoomCode("DEMO");
-					newSession->SetPlayerNumber(2);
-					std::cout << "Player 2 connected to DEMO room" << std::endl;
-				}
-				else {
-					std::cout << "DEMO room is full" << std::endl;
-				}
-				});
-		}
-
-		// 세션 시작
+		roomManager_.JoinRoom("DEMO", newSession);
 		newSession->Start();
-
-		// 다음 클라이언트 accept 대기
 		ServerAccept();
-		});
+	});
 }
 
 
 void TCPGameSession::recv() {
 
 	auto self(shared_from_this());
-	TCPSocket.async_read_some(boost::asio::buffer(TCPrecvBuffer),
+	TCPSocket.async_read_some(boost::asio::buffer(TCPrecvBuffer), boost::asio::bind_executor(strand_,
 		[this, self](boost::system::error_code ec, std::size_t length)
 		{
 			if (ec) {
@@ -95,17 +70,42 @@ void TCPGameSession::recv() {
 				}
 			}
 			recv();
-		});
+		}));
 }
 
-TCPGameSession::TCPGameSession(tcp::socket tcpsock) noexcept
-	: TCPSocket(std::move(tcpsock)), playerNumber(0)
+void TCPGameSession::doWrite()
 {
-	prevDataSize = 0, curDataSize = 0;
+	if (writeQueue_.empty()) {
+		writing_ = false;
+		return;
+	}
+
+	writing_ = true;
+	auto& front = writeQueue_.front();
+
+	boost::asio::async_write(TCPSocket,
+		boost::asio::buffer(*front),
+		boost::asio::bind_executor(strand_,
+			[this, self = shared_from_this()](boost::system::error_code ec, std::size_t) {
+				if (ec) {
+					std::cout << "Write ERR: " << ec.message() << std::endl;
+					writeQueue_.clear();
+					writing_ = false;
+					return;
+				}
+				writeQueue_.pop_front();
+				doWrite(); // 큐에 남은 거 계속 처리
+			}));
+}
+
+TCPGameSession::TCPGameSession(tcp::socket sock, boost::asio::io_context& ioc)
+	: TCPSocket(std::move(sock))
+	, strand_(boost::asio::make_strand(ioc))
+	, playerNumber(0), prevDataSize(0), curDataSize(0)
+{
 	ZeroMemory(TCPrecvBuffer, MAXSIZE);
 	ZeroMemory(TCPPacketData, MAXSIZE);
 	ZeroMemory(PartyRoomCode, RoomCodeLen);
-	std::cout << "createGameSession\n";
 }
 
 TCPGameSession::~TCPGameSession()
@@ -116,6 +116,10 @@ void TCPGameSession::Start()
 {
 	recv();
 	std::cout << "START\n";
+}
+
+void TCPGameSession::QueueSend(std::shared_ptr<std::vector<unsigned char>> data)
+{
 }
 
 void TCPGameSession::GamePacketProcess()
@@ -141,7 +145,12 @@ void TCPGameSession::GamePacketProcess()
 		gcPacket.act_command = packet.act_command;
 		memcpy(gcPacket.move_data, packet.move_data, sizeof(packet.move_data));
 
-		BroadcastToOthers(reinterpret_cast<unsigned char*>(&gcPacket));
+		// GameRoom에 위임
+		//std::string roomCode(PartyRoomCode, RoomCodeLen);
+		//Rooms.visit(roomCode, [this, &gcPacket](auto&& pair) {
+		//	pair.second->BroadcastToOthers(
+		//		playerNumber, reinterpret_cast<unsigned char*>(&gcPacket));
+		//	});
 		break;
 	}
 
@@ -150,34 +159,12 @@ void TCPGameSession::GamePacketProcess()
 		std::cout << "[Player " << playerNumber << "] Attack" << std::endl;
 
 		// 다른 플레이어에게 전송
-		BroadcastToOthers(TCPPacketData);
 		break;
 	}
 
 	default:
 		std::cout << "Unknown packet type: " << (int)type << std::endl;
 		break;
-	}
-}
-
-void TCPGameSession::BroadcastToOthers(unsigned char* packetData)
-{
-	std::string roomCode(PartyRoomCode, RoomCodeLen);
-
-	if (Rooms.contains(roomCode)) {
-		Rooms.visit(roomCode, [this, packetData](auto&& pair) {
-			auto& room = pair.second;
-
-			// 자신을 제외한 다른 플레이어에게 전송
-			if (room->FirstTCPSession && room->FirstTCPSession.get() != this) {
-				room->FirstTCPSession->PacketSend(packetData);
-				std::cout << "  -> Broadcasted to Player 1" << std::endl;
-			}
-			if (room->SecondTCPSession && room->SecondTCPSession.get() != this) {
-				room->SecondTCPSession->PacketSend(packetData);
-				std::cout << "  -> Broadcasted to Player 2" << std::endl;
-			}
-			});
 	}
 }
 

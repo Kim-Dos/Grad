@@ -1,6 +1,5 @@
 #pragma once
 #include"stdafx.h"
-#include "MathHelper.h"
 #include "Protocol.h"
 
 class Object 

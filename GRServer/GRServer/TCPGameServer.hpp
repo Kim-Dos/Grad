@@ -1,7 +1,4 @@
-#include <boost\unordered\concurrent_flat_map.hpp>
-#include <atomic>
-#include <boost\asio.hpp>
-#include <iostream>
+#include "RoomManager.hpp"
 #include "Protocol.h"
 #pragma once
 
@@ -15,11 +12,13 @@ class GameTCP {
 
 public:
 
-	GameTCP(boost::asio::io_context& IOContext, int ServerPort);
+	GameTCP(boost::asio::io_context& IOContext, int ServerPort, RoomManager& roomMgr);
 
 private:
+	boost::asio::io_context& ioc_;
 	tcp::socket mTCPSocket;
 	tcp::acceptor mTCPAcceptor;
+	RoomManager& roomManager_;
 	void ServerAccept();
 };
 
@@ -33,23 +32,31 @@ class TCPGameSession
 private:
 
 	tcp::socket TCPSocket;
-	int prevDataSize, curDataSize;
-	int playerNumber; // 플레이어 번호 (1 or 2)
+	boost::asio::strand<boost::asio::io_context::executor_type> strand_;
 
+	std::deque<std::shared_ptr<std::vector<unsigned char>>> writeQueue_;
+	bool writing_ = false;
+
+	int playerNumber;
 	char PartyRoomCode[RoomCodeLen];
-	unsigned char TCPrecvBuffer[MAXSIZE]; // 수신버퍼에서 꺼어오는 버퍼
-	unsigned char TCPPacketData[MAXSIZE]; // 프로세스에 사용될 패킷 데이터
+	unsigned char TCPrecvBuffer[MAXSIZE];
+	unsigned char TCPPacketData[MAXSIZE];
+	int prevDataSize, curDataSize;
 
 	void recv();
-	void BroadcastToOthers(unsigned char* packetData); // 다른 플레이어에게 중계
+
+	void doWrite();
 
 public:
 
-	TCPGameSession(tcp::socket tcpsock) noexcept;
+	TCPGameSession(tcp::socket tcpsock, boost::asio::io_context& ioc);
 
 	~TCPGameSession();
 
 	void Start();
+
+
+	void QueueSend(std::shared_ptr<std::vector<unsigned char>> data);
 
 	void GamePacketProcess();
 
