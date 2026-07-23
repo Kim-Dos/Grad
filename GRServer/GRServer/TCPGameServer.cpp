@@ -124,49 +124,61 @@ void TCPGameSession::QueueSend(std::shared_ptr<std::vector<unsigned char>> data)
 
 void TCPGameSession::GamePacketProcess()
 {
-	// 패킷 타입에 따라 처리
-	Packet_Type type = static_cast<Packet_Type>(TCPPacketData[1]);
+	unsigned char packetType = TCPPacketData[1]; // [0]=size, [1]=type
 
-	switch (type) {
-	case CG_MOVEMENT: // 피킹된 객체 이동
+	switch (packetType)
 	{
-		CGPickingMove packet;
-		memcpy(&packet, TCPPacketData, sizeof(CGPickingMove));
+	case CS_MOVE_OBJ_REQUEST:
+	{
+		auto room = room_.lock();
+		if (!room) break;
 
-		std::cout << "[Player " << playerNumber << "] Movement - PickingSize: "
-			<< (int)packet.pickingsize << std::endl;
+		CSMoveObjRequest req;
+		memcpy(&req, TCPPacketData, sizeof(CSMoveObjRequest)); // 값 복사
 
-		// 다른 플레이어에게 GC_OTHER_MOVEMENT로 변환하여 전송
-		GCPickingMove gcPacket;
-		gcPacket.size = sizeof(GCPickingMove);
-		gcPacket.type = GC_OTHER_MOVEMENT;
-		gcPacket.pickingsize = packet.pickingsize;
-		gcPacket.playerNumber = playerNumber; // 누가 보낸 것인지 표시
-		gcPacket.act_command = packet.act_command;
-		memcpy(gcPacket.move_data, packet.move_data, sizeof(packet.move_data));
-
-		// GameRoom에 위임
-		//std::string roomCode(PartyRoomCode, RoomCodeLen);
-		//Rooms.visit(roomCode, [this, &gcPacket](auto&& pair) {
-		//	pair.second->BroadcastToOthers(
-		//		playerNumber, reinterpret_cast<unsigned char*>(&gcPacket));
-		//	});
+		room->HandleMoveRequest(playerNumber, req);
 		break;
 	}
 
-	case CG_ATTACK: // 공격
+	case CS_MOVE_MULTI_REQUEST:
 	{
-		std::cout << "[Player " << playerNumber << "] Attack" << std::endl;
+		auto room = room_.lock();
+		if (!room) break;
 
-		// 다른 플레이어에게 전송
+		CSMoveMultiRequest req;
+		memcpy(&req, TCPPacketData, sizeof(CSMoveMultiRequest));
+
+		room->HandleMultiMove(playerNumber, req);
+		break;
+	}
+
+	case CS_STOP_OBJ_REQUEST:
+	{
+		auto room = room_.lock();
+		if (!room) break;
+
+		CSStopObjRequest req;
+		memcpy(&req, TCPPacketData, sizeof(CSStopObjRequest));
+
+		room->HandleStopRequest(playerNumber, req);
+		break;
+	}
+
+	// 기존 Packet_Type 계열 (입장 등)
+	case CG_LINKGAMESERVER:
+	{
+		// TODO: CGLinkInfo의 RoomCode 확인 → RoomManager::JoinRoom
+		//       현재는 accept 시 DEMO 방에 바로 넣는 구조라면 생략 가능
 		break;
 	}
 
 	default:
-		std::cout << "Unknown packet type: " << (int)type << std::endl;
+		std::cout << "[Session " << playerNumber
+			<< "] unknown packet type: " << (int)packetType << std::endl;
 		break;
 	}
 }
+
 
 void TCPGameSession::PacketSend(void* packet)
 {

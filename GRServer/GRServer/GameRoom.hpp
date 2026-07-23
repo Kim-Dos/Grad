@@ -36,9 +36,26 @@ private:
     //std::shared_ptr<UDPGameSession> UDPSession;
 
     concurrent_flat_map<int, std::shared_ptr<GameActor>> GameObjs;
+
     std::unique_ptr<ServerCollisionSystem> collisionSystem;
     ServerMovementSystem movementSystem;
-    float syncTimer = 0.0f;
+
+    boost::asio::steady_timer syncTimer_{ strand_ };  // strand 위에서 동작
+    void DoPositionSync();
+
+    // POD 패킷 → 송신용 버퍼 복사 헬퍼
+    template<typename PacketT>
+    static std::shared_ptr<std::vector<unsigned char>> Pack(const PacketT& p)
+    {
+        auto src = reinterpret_cast<const unsigned char*>(&p);
+        return std::make_shared<std::vector<unsigned char>>(src, src + p.size);
+    }
+
+    bool gameStarted_ = false;
+
+    // 시작 유닛 등록 + SCGameStart 페이로드 생성 (strand 위에서 호출)
+    void SpawnStartingUnits(int playerNumber);
+    void TryStartGame();
 
 public:
     GameRoom(boost::asio::io_context& ioc, const std::string& roomCode, const std::string& MapName);
@@ -64,9 +81,19 @@ public:
     ServerCollisionSystem* GetCollisionSystem() { return collisionSystem.get(); }
     void SetMulticast();
 
-    //inline void setUDPSocket(udp::socket udpsock) {
-    //    UDPSession = std::make_shared<UDPGameSession>(std::move(udpsock));
-    //}
+    // CS_* 패킷 핸들러 (세션이 room strand로 post해서 호출)
+    void HandleMoveRequest(int playerNumber, CSMoveObjRequest   req);
+    void HandleMultiMove(int playerNumber, CSMoveMultiRequest req);
+    void HandleStopRequest(int playerNumber, CSStopObjRequest   req);
 
+    // 전원 브로드캐스트 (요청자 포함)
+    void BroadcastToAll(std::shared_ptr<std::vector<unsigned char>> data);
+
+    // 특정 플레이어에게만 전송 (거부/경고용)
+    void SendToPlayer(int playerNumber,
+        std::shared_ptr<std::vector<unsigned char>> data);
+
+    // 주기적 위치 동기화 시작 (방 생성 or 게임 시작 시 1회 호출)
+    void StartPositionSync();
    
 };

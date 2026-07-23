@@ -85,6 +85,8 @@ constexpr unsigned char SC_MOVE_MULTI_RESULT = 61;  // 다중 오브젝트 이동 결과
 constexpr unsigned char SC_OBJ_POSITION_SYNC = 62;  // 주기적 위치 동기화
 constexpr unsigned char SC_MOVE_REJECTED = 63;  // 이동 거부 (핵 감지 등)
 constexpr unsigned char SC_HACK_WARNING = 64;  // 핵 경고
+constexpr unsigned char SC_LINK_RESULT = 65;  // 입장 결과 (플레이어 번호 부여)
+constexpr unsigned char SC_GAME_START = 66;  // 게임 시작 (전체 유닛 목록)
 
 struct CSMoveObjRequest {
 	unsigned char size;
@@ -237,6 +239,49 @@ struct SCHackWarning {
 		maxWarnings = 5;
 	}
 };
+
+struct SCLinkResult {
+	unsigned char size;
+	unsigned char type;
+	unsigned char playerNumber;     // 1 or 2. 0 == 입장 실패(방 꽉참 등)
+	unsigned char reserved;
+
+	SCLinkResult() {
+		size = sizeof(SCLinkResult);
+		type = SC_LINK_RESULT;
+		playerNumber = 0;
+		reserved = 0;
+	}
+};
+
+//-----------------------------------------------------------------
+// 게임 시작: 양 플레이어의 시작 유닛 전체 목록
+//  - 클라이언트는 이걸 받아 (owner, objNumber) → GameObject 매핑 구축
+//  - 15바이트 × 12 = 180, 전체 183바이트 (1바이트 size 한계 OK)
+//-----------------------------------------------------------------
+constexpr int MAX_TOTAL_START_UNITS = 12;
+
+struct SCStartUnit {
+	unsigned char objNumber;
+	unsigned char ownerPlayer;
+	unsigned char objType;          // ObjType (Slave/Knight/Archer...)
+	FXYZ position;                  // 서버가 정한 스폰 위치
+};
+
+struct SCGameStart {
+	unsigned char size;
+	unsigned char type;
+	unsigned char unitCount;
+	SCStartUnit units[MAX_TOTAL_START_UNITS];
+
+	SCGameStart() {
+		size = sizeof(SCGameStart);
+		type = SC_GAME_START;
+		unitCount = 0;
+		memset(units, 0, sizeof(units));
+	}
+};
+
 
 enum Skilltype {
 	NormalSkill,

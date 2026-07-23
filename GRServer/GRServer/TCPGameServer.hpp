@@ -47,6 +47,8 @@ private:
 
 	void doWrite();
 
+	std::weak_ptr<GameRoom> room_;   // 소속 방 (순환참조 방지용 weak)
+
 public:
 
 	TCPGameSession(tcp::socket tcpsock, boost::asio::io_context& ioc);
@@ -67,4 +69,9 @@ public:
 	void SetRoomCode(const std::string& code);
 	void SetPlayerNumber(int num);
 	inline int GetPlayerNumber() const { return playerNumber; }
+
+
+	void SetRoom(std::shared_ptr<GameRoom> room) { room_ = room; }
+	std::shared_ptr<GameRoom> GetRoom() const { return room_.lock(); }
+
 };

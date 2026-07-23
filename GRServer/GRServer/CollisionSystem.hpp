@@ -81,7 +81,7 @@ public:
 
         // 다른 동적 오브젝트와 충돌 검사
         for (const auto& other : dynamicObjects) {
-            if (other.objNumber != obj.objNumber &&
+            if (other.objNumber != obj.objNumber ||
                 other.ownerPlayerNumber != obj.ownerPlayerNumber) {
 
                 if (obj.boundingBox.Intersects(other.boundingBox)) {
@@ -147,6 +147,34 @@ public:
     // 모든 동적 오브젝트 가져오기
     const std::vector<ServerGameObject>& GetDynamicObjects() const {
         return dynamicObjects;
+    }
+
+    // (objNumber, owner)로 현재 위치 조회
+    bool TryGetObjectPosition(unsigned char objNumber, int owner, FXYZ& out) const
+    {
+        for (const auto& obj : dynamicObjects) {
+            if (obj.objNumber == objNumber && obj.ownerPlayerNumber == owner) {
+                out = obj.position;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 위치 동기화용: 전체 동적 오브젝트 스냅샷
+    void CollectAllPositions(std::vector<SCSyncEntry>& out) const
+    {
+        out.clear();
+        out.reserve(dynamicObjects.size());
+        for (const auto& obj : dynamicObjects) {
+            if (obj.isStatic) continue;
+            SCSyncEntry e;
+            e.objNumber = obj.objNumber;
+            e.ownerPlayer = (unsigned char)obj.ownerPlayerNumber;
+            e.position = obj.position;
+            e.direction = { 0.f, 0.f, 0.f }; // TODO: 이동 방향 저장 시 채움
+            out.push_back(e);
+        }
     }
 
 private:

@@ -1,161 +1,167 @@
 #include "TCPClient.hpp"
-#include "../../ppo/NetworkBridge.h"
-using boost::asio::ip::tcp;
 
-const char* ip = "127.0.0.1";
-int port = 4000;
-
-boost::asio::ip::tcp::endpoint GameServerIP(boost::asio::ip::make_address(ip), port);
-
-// ★ 생성자에 bridge 추가
-TCPC::TCPC(boost::asio::io_context& service, NetworkBridge* bridge) noexcept
-    : msocket(service), mBridge(bridge)
+TCPC::TCPC(boost::asio::io_context& ioc, NetworkBridge& bridge) noexcept
+	: mTCPSocket(ioc)
+	, strand_(boost::asio::make_strand(ioc))
+	, sendTimer_(ioc)
+	, bridge_(bridge)
 {
-    prevDataSize = 0, curDataSize = 0;
-    ZeroMemory(recvBuffer, MAXSIZE);
-    ZeroMemory(PacketData, MAXSIZE);
-
-    msocket.async_connect(GameServerIP, [this](boost::system::error_code ec) {
-        if (ec) {
-            std::cout << "Connection failed: " << ec.what() << std::endl;
-            exit(-1);
-        }
-        std::cout << "Connected to game server!" << std::endl;
-        recv(recvBuffer);
-        });
+	ZeroMemory(recvBuffer, MAXSIZE);
+	ZeroMemory(PacketData, MAXSIZE);
 }
 
-void TCPC::recv(unsigned char(&arr)[1024]) {
+void TCPC::Connect(const char* ip, unsigned short port)
+{
+	tcp::endpoint serverEP(boost::asio::ip::make_address(ip), port);
 
-    msocket.async_read_some(boost::asio::buffer(arr),
-        [this, &arr](boost::system::error_code ec, std::size_t length)
-        {
-            if (ec) {
-                std::cout << ec.what() << std::endl;
-                exit(-1);
-            }
-            int LoadedBuff = static_cast<int>(length);
+	mTCPSocket.async_connect(serverEP,
+		boost::asio::bind_executor(strand_,
+			[this](boost::system::error_code ec)
+			{
+				if (ec) {
+					std::cout << "[TCPC] connect fail: " << ec.message() << std::endl;
+					connected_ = false;
+					return;
+				}
+				std::cout << "[TCPC] connected\n";
+				mTCPSocket.set_option(tcp::no_delay(true)); // 실시간성: Nagle off
+				connected_ = true;
 
-            unsigned char* PacketPoint = arr;
-            while (0 < LoadedBuff) {
-                if (curDataSize == 0) {
-                    curDataSize = PacketPoint[0];
-                    if (curDataSize > 200) {
-                        std::cout << "BufferErr\n" << std::endl;
-                        exit(-1);
-                    }
-                }
-                int build = curDataSize - prevDataSize;
-
-                if (build <= LoadedBuff) {
-                    memcpy(PacketData + prevDataSize, PacketPoint, build);
-                    ClientPacketProcess();
-                    curDataSize = 0;
-                    prevDataSize = 0;
-                    LoadedBuff -= build;
-                    PacketPoint += build;
-                }
-                else {
-                    memcpy(PacketData + prevDataSize, PacketPoint, LoadedBuff);
-                    prevDataSize += LoadedBuff;
-                    LoadedBuff = 0;
-                }
-            }
-            recv(arr);
-        });
+				recv();            // 수신 루프 시작
+				pumpSendQueue();   // SendQ 펌프 시작
+			}));
 }
 
-void TCPC::Packetsend(const void* packet, size_t size) {
-    std::cout << "sendpack\n";
-    unsigned char* buffer = new unsigned char[size];
-    memcpy(buffer, packet, size);
-    boost::asio::post(msocket.get_executor(), [this, buffer, size]() {
-        msocket.async_write_some(boost::asio::buffer(buffer, size),
-            [this, buffer, size](boost::system::error_code ec, std::size_t bytes_transferred)
-            {
-                if (!ec)
-                {
-                    if (size != bytes_transferred) {
-                        std::cout << "ERR - Bytes_transferred\n";
-                    }
-                }
-                delete[] buffer;
-            });
-        });
+//-----------------------------------------------------------------
+// 수신: async_read_some → 길이 프리픽스 기준 패킷 조립 →
+//       완성될 때마다 bridge_.EnqueueRecv() → 다시 recv()
+//-----------------------------------------------------------------
+void TCPC::recv()
+{
+	mTCPSocket.async_read_some(boost::asio::buffer(recvBuffer, MAXSIZE),
+		boost::asio::bind_executor(strand_,
+			[this](boost::system::error_code ec, std::size_t length)
+			{
+				if (ec) {
+					std::cout << "[TCPC] recv err: " << ec.message() << std::endl;
+					connected_ = false;
+					return; // TODO: 재접속 로직
+				}
+
+				int remain = static_cast<int>(length);
+				unsigned char* p = recvBuffer;
+
+				while (remain > 0) {
+					// 새 패킷 시작: 첫 바이트가 전체 길이
+					if (curDataSize == 0) {
+						curDataSize = p[0];
+						// 방어: 최소 size+type 2바이트,
+						//       PacketBuffer::MAX_PACKET(256) 초과 금지
+						if (curDataSize < 2 ||
+							curDataSize >(int)PacketBuffer::MAX_PACKET) {
+							std::cout << "[TCPC] bad packet size: "
+								<< curDataSize << std::endl;
+							connected_ = false;
+							return;
+						}
+					}
+
+					int need = curDataSize - prevDataSize; // 이 패킷에 더 필요한 양
+					int copy = (need < remain) ? need : remain;
+
+					memcpy(PacketData + prevDataSize, p, copy);
+					prevDataSize += copy;
+					p += copy;
+					remain -= copy;
+
+					// 패킷 하나 완성 → 메인스레드용 RecvQ로
+					if (prevDataSize == curDataSize) {
+						bridge_.EnqueueRecv(PacketData, curDataSize);
+						prevDataSize = 0;
+						curDataSize = 0;
+					}
+				}
+
+				recv();
+			}));
 }
 
-// ★★★ 핵심 변경: 직접 게임 로직 처리 대신 RecvQ에 넣기만 함
-void TCPC::ClientPacketProcess() {
-    Packet_Type type = static_cast<Packet_Type>(PacketData[1]);
+//-----------------------------------------------------------------
+// 송신 펌프: 일정 주기로 SendQ를 비워 writeQueue로 옮긴다.
+//  - spsc SendQ의 유일한 소비자 = 이 펌프(IO스레드, strand 위)
+//-----------------------------------------------------------------
+void TCPC::pumpSendQueue()
+{
+	if (!connected_) return;
 
-    switch (type)
-    {
-    case GC_OTHER_MOVEMENT: // 다른 플레이어의 이동 데이터
-    {
-        GCPickingMove packet;
-        memcpy(&packet, PacketData, sizeof(GCPickingMove));
+	PacketBuffer pkt;
+	while (bridge_.DequeueSend(pkt)) {
+		if (pkt.length < 2) continue;
 
-        std::cout << "Received movement from Player " << packet.playerNumber << std::endl;
-        std::cout << "  PickingSize: " << (int)packet.pickingsize << std::endl;
+		auto data = std::make_shared<std::vector<unsigned char>>(
+			pkt.data, pkt.data + pkt.length);
 
-        // 여기서 다른 플레이어의 오브젝트 위치 업데이트
-        for (int i = 0; i < packet.pickingsize; i++) {
-            std::cout << "  Object " << (int)packet.move_data[i].objnumber
-                << " -> Pos(" << packet.move_data[i].pos_x
-                << ", " << packet.move_data[i].pos_z << ")" << std::endl;
+		writeQueue_.push_back(data);
+	}
 
-            // TODO: 게임 오브젝트 업데이트
-            // UpdateOtherPlayerObject(packet.playerNumber, packet.move_data[i]);
-        }
-        break;
-    }
+	if (!writing_ && !writeQueue_.empty()) {
+		writing_ = true;
+		doWrite();
+	}
 
-    case GC_CHECKATTACK: // 다른 플레이어의 공격
-    {
-        GCAttack packet;
-        memcpy(&packet, PacketData, sizeof(GCAttack));
-
-        std::cout << "Player " << packet.enemy_playerNumber << " attacked!" << std::endl;
-
-        // TODO: 공격 이펙트 표시
-        break;
-    }
-
-    case LC_LOG_INFO:
-        break;
-    case LC_PUSH_MATCHING_Q:
-        break;
-    case LC_FIND_ROOM_CODE:
-        break;
-    case LC_ROOM_CREATE:
-        break;
-    default:
-        std::cout << "Unknown packet: " << (int)type << std::endl;
-        break;
-    }
+	// 다음 펌프 예약
+	sendTimer_.expires_after(
+		std::chrono::milliseconds(SEND_PUMP_INTERVAL_MS));
+	sendTimer_.async_wait(
+		boost::asio::bind_executor(strand_,
+			[this](boost::system::error_code ec)
+			{
+				if (!ec) pumpSendQueue();
+			}));
 }
 
-void TCPC::Character_Positioning() {
-    FXYZ position;
-    memcpy(&position, PacketData + 2, sizeof(FXYZ));
-    traceKey();
+void TCPC::doWrite()
+{
+	auto& front = writeQueue_.front();
+
+	boost::asio::async_write(mTCPSocket,
+		boost::asio::buffer(*front),
+		boost::asio::bind_executor(strand_,
+			[this](boost::system::error_code ec, std::size_t /*bytes*/)
+			{
+				if (ec) {
+					std::cout << "[TCPC] send err: " << ec.message() << std::endl;
+					connected_ = false;
+					writing_ = false;
+					writeQueue_.clear();
+					return;
+				}
+
+				writeQueue_.pop_front();
+				if (!writeQueue_.empty())
+					doWrite();
+				else
+					writing_ = false;
+			}));
 }
 
-void TCPC::traceKey() {
-    // 키보드 입력 처리
-}
+//-----------------------------------------------------------------
+// 브리지를 거치지 않는 즉시 전송 (초기 연결 패킷 등)
+//  - strand로 post하므로 어느 스레드에서 불러도 안전
+//-----------------------------------------------------------------
+void TCPC::SendPacketDirect(const void* packet)
+{
+	const unsigned char* src = reinterpret_cast<const unsigned char*>(packet);
+	std::size_t len = src[0];
+	if (len < 2 || len > PacketBuffer::MAX_PACKET) return;
 
-void TCPC::SendMovement(const std::vector<MoveData>& moveData) {
-    CGPickingMove packet;
-    packet.size = sizeof(CGPickingMove);
-    packet.type = CG_MOVEMENT;
-    packet.pickingsize = static_cast<BYTE>(moveData.size());
-    packet.playerNumber = myPlayerNumber; // 자신의 플레이어 번호
-    packet.act_command = 'M'; // Move command
+	auto data = std::make_shared<std::vector<unsigned char>>(src, src + len);
 
-    for (size_t i = 0; i < moveData.size() && i < MAXPICKING; i++) {
-        packet.move_data[i] = moveData[i];
-    }
-
-    Packetsend(&packet, (size_t)packet.size);
+	boost::asio::post(strand_, [this, data]() {
+		writeQueue_.push_back(data);
+		if (!writing_ && connected_) {
+			writing_ = true;
+			doWrite();
+		}
+		});
 }
